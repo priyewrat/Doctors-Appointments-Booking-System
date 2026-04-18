@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #5F6FFF;
+  --color-secondary: #314158;
+}
+
+::-webkit-scrollbar{
+  @apply hidden;
+}
+
+*{
+  font-family: outfit;
+}
+
+button:disabled {
+  background-color: #ccc;   /* grey background */
+  cursor: not-allowed;      /* show blocked cursor */
+  opacity: 0.7;             /* optional: make it look faded */
+}
