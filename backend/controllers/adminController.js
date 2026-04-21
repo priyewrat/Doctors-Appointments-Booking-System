@@ -5,6 +5,9 @@ import doctorModel from "../models/doctorModel.js";
 import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
 import userModel from "../models/userModel.js";
+import SubscriptionSetting from "../models/subscriptionModel.js";
+import DoctorSubscription from "../models/subscriptionModel.js";
+import nodemailer from "nodemailer";
 
 // API for adding doctor
 const addDoctor = async (req, res) => {
@@ -100,8 +103,55 @@ const addDoctor = async (req, res) => {
       date: Date.now(),
     };
 
+    // configure transporter
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
     const newDoctor = new doctorModel(doctorData);
     await newDoctor.save();
+
+    await transporter.sendMail({
+      to: email,
+      subject: "Welcome to Upchaar - Doctor Portal",
+      html: `<!DOCTYPE html>
+  <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; background-color: #f9f9f9; }
+        .container { max-width: 600px; margin: 40px auto; background: #fff;
+                     border: 1px solid #ddd; border-radius: 8px; padding: 20px;
+                     box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; }
+        p { color: #555; line-height: 1.6; }
+        .credentials { background: #f1f1f1; padding: 12px; border-radius: 6px; margin: 15px 0; }
+        .footer { margin-top: 30px; font-size: 12px; color: #999; text-align: center; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h2>Welcome, ${name}!</h2>
+        <p>We’re excited to have you join the Upchaar Doctor Portal.</p>
+        <p>Here are your login credentials:</p>
+        <div class="credentials">
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Password:</strong> ${password}</p>
+        </div>
+        <p>For security reasons, please reset your password after your first login.</p>
+        <p>You can now manage your profile, appointments, and subscriptions through the Upchaar Doctor Panel.</p>
+        <p>Regards,<br/>Upchaar Admin Team</p>
+        <div class="footer">
+          &copy; ${new Date().getFullYear()} Upchaar. All rights reserved.
+        </div>
+      </div>
+    </body>
+  </html>`,
+    });
+
     res
       .status(201)
       .json({ success: true, message: "Doctor added successfully" });
@@ -210,6 +260,10 @@ const adminDashboard = async (req, res) => {
     const doctors = await doctorModel.find({});
     const users = await userModel.find({});
     const appointments = await appointmentModel.find({});
+    const subscriptionSetting = await SubscriptionSetting.findOne({});
+    const subscriptions = await DoctorSubscription.find({})
+      .populate("doctorId", "name email reg_number image") // pull fields from doctor model
+      .sort({ createdAt: -1 });
 
     let earnings = 0;
     const doctorStats = {}; // store stats keyed by doctorId
@@ -243,6 +297,26 @@ const adminDashboard = async (req, res) => {
       totalEarnings: doctorStats[doc._id]?.earnings || 0,
     }));
 
+    const subscriptionRecords = subscriptions
+      .filter((sub) => sub.orderId)
+      .map((sub) => {
+        const now = new Date();
+        const status =
+          sub.subscriptionActive && sub.expiryDate > now
+            ? "Subscribed"
+            : "Expired";
+
+        return {
+          doctorName: sub.doctorId?.name,
+          doctorImage: sub.doctorId?.image,
+          doctorEmail: sub.doctorId?.email,
+          doctorRegId: sub.doctorId?.reg_number,
+          orderId: sub.orderId,
+          orderDate: sub.orderDate,
+          status,
+        };
+      });
+
     const dashData = {
       earnings,
       doctors: doctors.length,
@@ -250,8 +324,9 @@ const adminDashboard = async (req, res) => {
       patients: users.length,
       latestAppointments: appointments.reverse().slice(0, 5),
       doctorSummary, // <-- array with doctor name, patients, earnings, email, reg_number
+      subscriptionAmount: subscriptionSetting?.amount || 399, // <-- added here
+      subscriptionRecords,
     };
-
     res.json({ success: true, dashData });
   } catch (error) {
     console.log(error);
@@ -263,7 +338,10 @@ const lockDoctor = async (req, res) => {
   try {
     const { docId } = req.body;
     const doctor = await doctorModel.findById(docId);
-    if (!doctor) return res.status(404).json({ success: false, message: "Doctor not found" });
+    if (!doctor)
+      return res
+        .status(404)
+        .json({ success: false, message: "Doctor not found" });
 
     await doctor.lockByAdmin(); // model forces unavailable
     res.json({ success: true, message: "Doctor locked" });
@@ -276,7 +354,10 @@ const unlockDoctor = async (req, res) => {
   try {
     const { docId } = req.body;
     const doctor = await doctorModel.findById(docId);
-    if (!doctor) return res.status(404).json({ success: false, message: "Doctor not found" });
+    if (!doctor)
+      return res
+        .status(404)
+        .json({ success: false, message: "Doctor not found" });
 
     await doctor.unlockByAdmin(); // model gives control back
     res.json({ success: true, message: "Doctor unlocked" });
@@ -285,6 +366,39 @@ const unlockDoctor = async (req, res) => {
   }
 };
 
+// Update subscription amount
+const updateSubscriptionAmount = async (req, res) => {
+  try {
+    const { amount } = req.body;
+    if (!amount || amount <= 0) {
+      return res.json({ success: false, message: "Invalid amount" });
+    }
+
+    const setting = await SubscriptionSetting.findOneAndUpdate(
+      {},
+      { amount, updatedAt: new Date() },
+      { upsert: true, new: true },
+    );
+
+    res.json({
+      success: true,
+      message: "Subscription amount updated",
+      setting,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get current subscription amount
+const getSubscriptionAmount = async (req, res) => {
+  try {
+    const setting = await SubscriptionSetting.findOne({});
+    res.json({ success: true, amount: setting?.amount || 399 });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 export {
   addDoctor,
@@ -295,4 +409,6 @@ export {
   adminDashboard,
   lockDoctor,
   unlockDoctor,
+  updateSubscriptionAmount,
+  getSubscriptionAmount,
 };

@@ -6,10 +6,19 @@ import { assets } from "../../assets/assets";
 const AllAppointments = () => {
   const { aToken, appointments, getAllAppointments, cancelAppointment } =
     useContext(AdminContext);
-  const { calculateAge, slotDateFormat, currency,  formatOrderDate } = useContext(AppContext);
+  const { calculateAge, slotDateFormat, currency, formatOrderDate } =
+    useContext(AppContext);
 
   useEffect(() => {
     getAllAppointments();
+
+    // Poll every 5 seconds
+    const interval = setInterval(() => {
+      getAllAppointments();
+    }, 5000);
+
+    // Cleanup when component unmounts
+    return () => clearInterval(interval);
   }, [aToken]);
 
   return (
@@ -59,9 +68,7 @@ const AllAppointments = () => {
               </p>
 
               {/* Date & Time */}
-              <p>
-                {formatOrderDate(`${item.slotDate}T${item.slotTime}`)}
-              </p>
+              <p>{formatOrderDate(`${item.slotDate}T${item.slotTime}`)}</p>
 
               {/* Doctor */}
               <div className="flex items-center gap-2">
@@ -89,18 +96,18 @@ const AllAppointments = () => {
               </p>
 
               {/* Actions */}
-              {
-              item.cancelled 
-              ? <p className="text-red-400 text-xs font-medium">Cancelled</p>
-              : item.isCompleted 
-               ? <p className="text-green-500 text-xs font-medium">Completed</p>
-               : <img
+              {item.cancelled ? (
+                <p className="text-red-400 text-xs font-medium">Cancelled</p>
+              ) : item.isCompleted ? (
+                <p className="text-green-500 text-xs font-medium">Completed</p>
+              ) : (
+                <img
                   onClick={() => cancelAppointment(item._id)}
                   className="w-9 h-9 cursor-pointer"
                   src={assets.cancel_icon}
                   alt="Cancel"
                 />
-              }
+              )}
             </div>
           ))}
       </div>

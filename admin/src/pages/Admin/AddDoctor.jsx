@@ -171,7 +171,7 @@ const AddDoctor = () => {
             <textarea onChange={(e)=> setAbout(e.target.value)} value={about} className='w-full px-4 pt-2 border border-zinc-300 rounded' type="text" placeholder='Write About Doctor' rows={5} required/>
         </div>
 
-        <button type='submit' className='bg-primary px-10 py-3 mt-4 text-white rounded-full'>Add doctor</button>
+        <button type='submit' className='bg-primary px-10 py-3 mt-4 text-white rounded-full  hover:bg-primary/80 hover:shadow-lg transition-transform duration-200 cursor-pointer'>Add doctor</button>
 
       </div>
 

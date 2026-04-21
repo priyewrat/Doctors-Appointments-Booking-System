@@ -89,7 +89,7 @@ const Appointment = () => {
 
     try {
       const date = docSlots[slotIndex][0].datetime;
-      const slotDate = date.toISOString().split("T")[0]; // "YYYY-MM-DD"
+      const slotDate = date.toLocaleDateString("en-CA");  // "YYYY-MM-DD"
 
       const { data } = await axios.post(
         backendUrl + "/api/user/book-appointment",

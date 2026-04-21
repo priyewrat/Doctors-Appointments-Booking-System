@@ -14,6 +14,8 @@ import patients_icon from './patients_icon.svg'
 import payment_icon from './payment_icon.png'
 import pinlocation_icon from './pinlocation_icon.png'
 import payout_icon from './payout_icon.png'
+import subs_icon from './subs_icon.png'
+
 
 export const assets = {
     add_icon,
@@ -31,5 +33,6 @@ export const assets = {
     earning_icon,
     payment_icon,
     pinlocation_icon,
-    payout_icon
+    payout_icon,
+    subs_icon 
 }

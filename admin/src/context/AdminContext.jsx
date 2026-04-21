@@ -63,7 +63,6 @@ const AdminContextProvider = (props) => {
 
       if (data.success) {
         setAppointments(data.appointments);
-        console.log(data.appointments);
       } else {
         toast.error(data.message);
       }
@@ -108,6 +107,47 @@ const AdminContextProvider = (props) => {
     }
   };
 
+  const getSubscriptionAmount = async () => {
+  try {
+    const { data } = await axios.get(
+      backendUrl + "/api/admin/subscription-amount",
+      { headers: { aToken } }
+    );
+
+    if (data.success) {
+      return data.amount; // return current subscription fee
+    } else {
+      toast.error(data.message);
+      return null;
+    }
+  } catch (error) {
+    toast.error("Error fetching subscription amount");
+    return null;
+  }
+};
+
+const updateSubscriptionAmount = async (amount) => {
+  try {
+    const { data } = await axios.post(
+      backendUrl + "/api/admin/update-subscription-amount",
+      { amount },
+      { headers: { aToken } }
+    );
+
+    if (data.success) {
+      toast.success(data.message);
+      return data.setting.amount; // updated amount
+    } else {
+      toast.error(data.message);
+      return null;
+    }
+  } catch (error) {
+    toast.error("Error updating subscription amount");
+    return null;
+  }
+};
+
+
   const value = {
     aToken,
     setAToken,
@@ -121,6 +161,8 @@ const AdminContextProvider = (props) => {
     cancelAppointment,
     dashData,
     getDashData,
+    getSubscriptionAmount,
+    updateSubscriptionAmount,
   };
 
   return (

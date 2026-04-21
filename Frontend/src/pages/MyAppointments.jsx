@@ -12,6 +12,9 @@ const MyAppointments = () => {
 
   const navigate = useNavigate();
 
+  const [processingId, setProcessingId] = useState(null);
+
+
   // Format ISO date string (YYYY-MM-DD) to "DD Mon YYYY"
   const slotDateFormat = (slotDate) => {
     if (!slotDate) return "";
@@ -46,6 +49,7 @@ const MyAppointments = () => {
 
   const cancelAppointment = async (appointmentId) => {
     try {
+      setProcessingId(appointmentId);
       const { data } = await axios.post(
         backendUrl + '/api/user/cancel-appointment',
         { appointmentId },
@@ -60,6 +64,9 @@ const MyAppointments = () => {
       }
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      // Always reset, success or error
+      setProcessingId(null);
     }
   };
 
@@ -94,6 +101,7 @@ const MyAppointments = () => {
 
   const appointmentRazorpay = async (appointmentId) => {
     try {
+      setProcessingId(appointmentId);
       const { data } = await axios.post(
         backendUrl + '/api/user/payment-razorpay',
         { appointmentId },
@@ -104,6 +112,9 @@ const MyAppointments = () => {
       }
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      // Always reset, success or error
+      setProcessingId(null);
     }
   };
 
@@ -144,6 +155,7 @@ const MyAppointments = () => {
               {!item.cancelled && !item.payment && !item.isCompleted && (
                 <button
                   onClick={() => appointmentRazorpay(item._id)}
+                  disabled={processingId === item._id}
                   className='text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300 cursor-pointer'
                 >
                   Pay Online
@@ -152,6 +164,7 @@ const MyAppointments = () => {
               {!item.cancelled && !item.isCompleted && (
                 <button
                   onClick={() => cancelAppointment(item._id)}
+                  disabled={processingId === item._id}
                   className='text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-red-600 hover:text-white transition-all duration-300 cursor-pointer'
                 >
                   Cancel Appointment

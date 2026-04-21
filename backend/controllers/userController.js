@@ -184,7 +184,9 @@ const bookAppointment = async (req, res) => {
       userId,
       docId,
       slotDate,
-      cancelled: { $ne: true },
+      // cancelled: { $ne: true },
+      cancelled: false, // must not be cancelled
+      isCompleted: false, // must not be completed
     });
     if (existingAppointment) {
       return res.json({
@@ -232,6 +234,49 @@ const bookAppointment = async (req, res) => {
     await newAppointment.save();
 
     res.json({ success: true, message: "Appointment Booked" });
+
+    // Inside bookAppointment after res.json({ success: true, message: "Appointment Booked" });
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      to: userData.email,
+      subject: "Appointment Confirmation - Upchaar",
+      html: `<!DOCTYPE html>
+  <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; background-color: #f9f9f9; }
+        .container { max-width: 600px; margin: 40px auto; background: #fff;
+                     border: 1px solid #ddd; border-radius: 8px; padding: 20px;
+                     box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; }
+        p { color: #555; line-height: 1.6; }
+        .footer { margin-top: 30px; font-size: 12px; color: #999; text-align: center; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h2>Appointment Confirmed</h2>
+        <p>Dear ${userData.name},</p>
+        <p>Your appointment with  ${docData.name} has been successfully booked.</p>
+        <p><strong>Date:</strong> ${slotDate}</p>
+        <p><strong>Time:</strong> ${slotTime}</p>
+        <p><strong>Fees:</strong> ₹${docData.fees}</p>
+        <p>Thank you for choosing Upchaar. Please arrive 10 minutes before your scheduled time.</p>
+        <div class="footer">
+          &copy; ${new Date().getFullYear()} Upchaar. All rights reserved.
+        </div>
+      </div>
+    </body>
+  </html>`,
+    });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
@@ -257,15 +302,21 @@ const cancelAppointment = async (req, res) => {
 
     const appointmentData = await appointmentModel.findById(appointmentId);
     if (!appointmentData) {
-      return res.status(404).json({ success: false, message: "Appointment not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Appointment not found" });
     }
 
     // verify appointment user
     if (appointmentData.userId.toString() !== userId) {
-      return res.status(401).json({ success: false, message: "Unauthorized action" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized action" });
     }
 
-    await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });
+    await appointmentModel.findByIdAndUpdate(appointmentId, {
+      cancelled: true,
+    });
 
     // releasing doctor slot
     const { docId, slotDate, slotTime } = appointmentData;
@@ -274,7 +325,7 @@ const cancelAppointment = async (req, res) => {
     await bookingModel.deleteOne({
       doctorId: docId,
       date: slotDate,
-      startTime: slotTime
+      startTime: slotTime,
     });
 
     const doctorData = await doctorModel.findById(docId);
@@ -282,16 +333,59 @@ const cancelAppointment = async (req, res) => {
     if (!Array.isArray(slots_booked[slotDate])) {
       slots_booked[slotDate] = [];
     }
-    slots_booked[slotDate] = slots_booked[slotDate].filter((e) => e !== slotTime);
+    slots_booked[slotDate] = slots_booked[slotDate].filter(
+      (e) => e !== slotTime,
+    );
     await doctorModel.findByIdAndUpdate(docId, { slots_booked });
 
-    return res.json({ success: true, message: "Appointment cancelled" });
+      const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      to: appointmentData.userData.email,
+      subject: "Appointment Cancelled - Upchaar",
+      html: `<!DOCTYPE html>
+  <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; background-color: #f9f9f9; }
+        .container { max-width: 600px; margin: 40px auto; background: #fff;
+                     border: 1px solid #ddd; border-radius: 8px; padding: 20px;
+                     box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; }
+        p { color: #555; line-height: 1.6; }
+        .footer { margin-top: 30px; font-size: 12px; color: #999; text-align: center; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h2>Appointment Cancelled</h2>
+        <p>Dear ${appointmentData.userData.name},</p>
+        <p>Your appointment with ${appointmentData.docData.name} scheduled on <strong>${slotDate}</strong> at <strong>${slotTime}</strong> has been cancelled.</p>
+        <p>We’re sorry to see you cancel, but we hope to assist you again soon.</p>
+        <div class="footer">
+          &copy; ${new Date().getFullYear()} Upchaar. All rights reserved.
+        </div>
+      </div>
+    </body>
+  </html>`,
+    });
+
+    return res.json({
+      success: true,
+      message: "Appointment cancelled",
+      releasedSlot: { date: slotDate, time: slotTime },
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 const razorpayInstance = new razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -334,13 +428,60 @@ const verifyRazorpay = async (req, res) => {
     const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
 
     if (orderInfo.status === "paid") {
-      await appointmentModel.findByIdAndUpdate(orderInfo.receipt, {
-        payment: true,
-        orderId: orderInfo.id,
-        orderDate: new Date(),          
+      const appointment = await appointmentModel.findByIdAndUpdate(
+        orderInfo.receipt,
+        {
+          payment: true,
+          orderId: orderInfo.id,
+          orderDate: new Date(),
+        },
+        { new: true }, // return updated doc
+      );
+
+      // send payment receipt email
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
       });
+
+      await transporter.sendMail({
+        to: appointment.userData.email, // you already embed userData at booking
+        subject: "Payment Receipt - Upchaar",
+        html: `<!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; background-color: #f9f9f9; }
+              .container { max-width: 600px; margin: 40px auto; background: #fff;
+                           border: 1px solid #ddd; border-radius: 8px; padding: 20px;
+                           box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+              h2 { color: #333; }
+              p { color: #555; line-height: 1.6; }
+              .footer { margin-top: 30px; font-size: 12px; color: #999; text-align: center; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h2>Payment Successful</h2>
+              <p>Dear ${appointment.userData.name},</p>
+              <p>Your payment for the appointment with ${appointment.docData.name} has been successfully processed.</p>
+              <p><strong>Date:</strong> ${appointment.slotDate}</p>
+              <p><strong>Time:</strong> ${appointment.slotTime}</p>
+              <p><strong>Amount Paid:</strong> ₹${appointment.amount}</p>
+              <p><strong>Order ID:</strong> ${orderInfo.id}</p>
+              <p>Thank you for choosing Upchaar. We look forward to serving you.</p>
+              <div class="footer">
+                &copy; ${new Date().getFullYear()} Upchaar. All rights reserved.
+              </div>
+            </div>
+          </body>
+        </html>`,
+      });
+
       res.json({ success: true, message: "Payment Successful" });
-      
     } else {
       res.json({ success: false, message: "Payment Failed" });
     }

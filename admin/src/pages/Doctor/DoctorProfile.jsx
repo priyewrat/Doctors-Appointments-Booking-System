@@ -281,7 +281,7 @@ const DoctorProfile = () => {
             />
             <button
               onClick={() => handleAddAvailability()}
-              className="px-3 py-1 bg-primary text-white rounded"
+              className="px-3 py-1 bg-primary text-white rounded add-btn"
               disabled={
                 !newAvailability.dayOfWeek ||
                 !newAvailability.startTime ||
