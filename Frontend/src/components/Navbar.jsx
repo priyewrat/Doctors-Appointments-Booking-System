@@ -81,7 +81,7 @@ const Navbar = () => {
 
           {/* Doctor Login */}
           <button
-            onClick={() => window.location.href = import.meta.env.VITE_ADMIN_URL + "/login"}
+            onClick={() => window.location.href = import.meta.env.VITE_ADMIN_URL + "/"}
             className="bg-zinc-500 text-white px-4 py-3 rounded-full font-light hidden md:block hover:bg-zinc-600 hover:scale-105 transition-transform duration-200"
           >
             Doctor Login
