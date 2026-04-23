@@ -112,6 +112,7 @@ const Appointment = () => {
 
   useEffect(() => {
     fetchDocInfo();
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }, [docId, doctors]);
 
   useEffect(() => {
