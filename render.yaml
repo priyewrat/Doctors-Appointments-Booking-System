@@ -3,8 +3,9 @@ services:
     name: doctors-appointments-backend
     env: node
     plan: free
-    buildCommand: "cd backend && npm install"
-    startCommand: "cd backend && npm run start"
+    rootDirectory: backend
+    buildCommand: "npm install"
+    startCommand: "npm run start"
     autoDeploy: true
     envVars:
       - key: MONGODB_URI
