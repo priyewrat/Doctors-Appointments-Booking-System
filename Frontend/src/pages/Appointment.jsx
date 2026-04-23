@@ -48,7 +48,7 @@ const Appointment = () => {
         const currentDate = new Date(today);
         currentDate.setDate(today.getDate() + i);
 
-        const dateString = currentDate.toISOString().split("T")[0];
+        const dateString = currentDate.toLocaleDateString("en-CA"); 
 
         const { data } = await axios.get(
           `${backendUrl}/api/doctor/${docId}/slots`,
@@ -63,7 +63,7 @@ const Appointment = () => {
             return { datetime: slotDateTime, time };
           })
           .filter((slot) => {
-            if (dateString === now.toISOString().split("T")[0]) {
+            if (dateString === now.toLocaleDateString("en-CA")) {
               return slot.datetime > now;
             }
             return true;
