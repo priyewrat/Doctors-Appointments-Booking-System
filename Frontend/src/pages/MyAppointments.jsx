@@ -122,6 +122,7 @@ const MyAppointments = () => {
     if (token) {
       getUserAppointments();
     }
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }, [token]);
 
   return (
