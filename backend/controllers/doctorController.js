@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
-import doctorAvailabilityModel from "../models/DoctorAvailabilityModel.js";
+import doctorAvailabilityModel from "../models/doctorAvailabilityModel.js";
 import bookingModel from "../models/bookingModel.js";
 import DoctorSubscription from "../models/subscriptionModel.js"; // DoctorSubscription schema
 import SubscriptionSetting from "../models/subscriptionModel.js"; // global fee settings (admin panel)
