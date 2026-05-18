@@ -27,62 +27,65 @@ const addDoctor = async (req, res) => {
     } = req.body;
     const imageFile = req.file;
 
-    // Field-by-field validation with explicit reasons
-    if (!name) return res.status(400).json({ success: false, reason: "Name is missing" });
-    if (!email) return res.status(400).json({ success: false, reason: "Email is missing" });
-    if (!password) return res.status(400).json({ success: false, reason: "Password is missing" });
-    if (!speciality) return res.status(400).json({ success: false, reason: "Speciality is missing" });
-    if (!degree) return res.status(400).json({ success: false, reason: "Degree is missing" });
-    if (!experience) return res.status(400).json({ success: false, reason: "Experience is missing" });
-    if (!about) return res.status(400).json({ success: false, reason: "About info is missing" });
-    if (!fees) return res.status(400).json({ success: false, reason: "Fees are missing" });
-    if (!city) return res.status(400).json({ success: false, reason: "City is missing" });
-    if (!address) return res.status(400).json({ success: false, reason: "Address is missing" });
-    if (!reg_number) return res.status(400).json({ success: false, reason: "Registration number is missing" });
+    // checking for all data to add doctor
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !speciality ||
+      !degree ||
+      !experience ||
+      !about ||
+      !fees ||
+      !city ||
+      !address ||
+      !reg_number
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
+    }
 
-    // Email format
+    // validating email format
     if (!validator.isEmail(email)) {
-      return res.status(400).json({ success: false, reason: "Invalid email format" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Please enter a valid email" });
     }
 
-    // Password strength
+    // validating strong password
     if (password.length < 8) {
-      return res.status(400).json({ success: false, reason: "Password must be at least 8 characters" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Password enter a strong password" });
     }
 
-    // Duplicate checks
+    // Check if email already exists
     const existingDoctor = await doctorModel.findOne({ email });
     if (existingDoctor) {
-      return res.status(400).json({ success: false, reason: "Email already exists" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Email already exists" });
     }
 
+    // Check if registration number already exists
     const existingReg = await doctorModel.findOne({ reg_number });
     if (existingReg) {
-      return res.status(400).json({ success: false, reason: "Registration number already exists" });
+      return res.status(400).json({
+        success: false,
+        message: "Registration number already exists",
+      });
     }
 
-    // Image check
-    if (!imageFile) {
-      return res.status(400).json({ success: false, reason: "Doctor image file is missing" });
-    }
+    // hashing doctor
+    const salt = await bycrypt.genSalt(10);
+    const hashedPassword = await bycrypt.hash(password, salt);
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Upload image
+    // upload image to cloudinary
     const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
       resource_type: "image",
     });
     const imageUrl = imageUpload.secure_url;
-
-    // Address parsing safeguard
-    let parsedAddress;
-    try {
-      parsedAddress = typeof address === "string" ? JSON.parse(address) : address;
-    } catch (err) {
-      return res.status(400).json({ success: false, reason: "Invalid address format" });
-    }
 
     const doctorData = {
       name,
@@ -96,11 +99,11 @@ const addDoctor = async (req, res) => {
       about,
       city,
       fees,
-      address: parsedAddress,
+      address: JSON.parse(address),
       date: Date.now(),
     };
 
-    // Email transporter
+    // configure transporter
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -115,17 +118,49 @@ const addDoctor = async (req, res) => {
     await transporter.sendMail({
       to: email,
       subject: "Welcome to Upchaar - Doctor Portal",
-      html: `<h2>Welcome, ${name}!</h2>
-             <p>Your account has been created. Please reset your password after first login.</p>`,
+      html: `<!DOCTYPE html>
+  <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; background-color: #f9f9f9; }
+        .container { max-width: 600px; margin: 40px auto; background: #fff;
+                     border: 1px solid #ddd; border-radius: 8px; padding: 20px;
+                     box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; }
+        p { color: #555; line-height: 1.6; }
+        .credentials { background: #f1f1f1; padding: 12px; border-radius: 6px; margin: 15px 0; }
+        .footer { margin-top: 30px; font-size: 12px; color: #999; text-align: center; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h2>Welcome, ${name}!</h2>
+        <p>We’re excited to have you join the Upchaar Doctor Portal.</p>
+        <p>Here are your login credentials:</p>
+        <div class="credentials">
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Password:</strong> ${password}</p>
+        </div>
+        <p>For security reasons, please reset your password after your first login.</p>
+        <p>You can now manage your profile, appointments, and subscriptions through the Upchaar Doctor Panel.</p>
+        <p>Regards,<br/>Upchaar Admin Team</p>
+        <div class="footer">
+          &copy; ${new Date().getFullYear()} Upchaar. All rights reserved.
+        </div>
+      </div>
+    </body>
+  </html>`,
     });
 
-    res.status(201).json({ success: true, message: "Doctor added successfully" });
+    res
+      .status(201)
+      .json({ success: true, message: "Doctor added successfully" });
   } catch (error) {
-    console.error("Error in addDoctor:", error);
+    console.log(error);
     res.status(500).json({
       success: false,
-      reason: error.message,   // exact runtime error
-      stack: error.stack       // optional, for debugging
+      message: "Error adding doctor",
+      message: error.message,
     });
   }
 };
