@@ -27,7 +27,7 @@ const addDoctor = async (req, res) => {
     } = req.body;
     const imageFile = req.file;
 
-    // checking for all data to add doctor
+    // Check required fields
     if (
       !name ||
       !email ||
@@ -39,53 +39,50 @@ const addDoctor = async (req, res) => {
       !fees ||
       !city ||
       !address ||
-      !reg_number
+      !reg_number ||
+      !imageFile
     ) {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required" });
+      return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
-    // validating email format
+    // Validate email
     if (!validator.isEmail(email)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Please enter a valid email" });
+      return res.status(400).json({ success: false, message: "Please enter a valid email" });
     }
 
-    // validating strong password
+    // Validate password strength
     if (password.length < 8) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Password enter a strong password" });
+      return res.status(400).json({ success: false, message: "Password must be at least 8 characters" });
     }
 
-    // Check if email already exists
+    // Check duplicates
     const existingDoctor = await doctorModel.findOne({ email });
     if (existingDoctor) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email already exists" });
+      return res.status(400).json({ success: false, message: "Email already exists" });
     }
 
-    // Check if registration number already exists
     const existingReg = await doctorModel.findOne({ reg_number });
     if (existingReg) {
-      return res.status(400).json({
-        success: false,
-        message: "Registration number already exists",
-      });
+      return res.status(400).json({ success: false, message: "Registration number already exists" });
     }
 
-    // hashing doctor
-    const salt = await bycrypt.genSalt(10);
-    const hashedPassword = await bycrypt.hash(password, salt);
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    // upload image to cloudinary
+    // Upload image to Cloudinary
     const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
       resource_type: "image",
     });
     const imageUrl = imageUpload.secure_url;
+
+    // Parse address safely
+    let parsedAddress;
+    try {
+      parsedAddress = typeof address === "string" ? JSON.parse(address) : address;
+    } catch {
+      return res.status(400).json({ success: false, message: "Invalid address format" });
+    }
 
     const doctorData = {
       name,
@@ -99,11 +96,15 @@ const addDoctor = async (req, res) => {
       about,
       city,
       fees,
-      address: JSON.parse(address),
+      address: parsedAddress,
       date: Date.now(),
     };
 
-    // configure transporter
+    // Save doctor
+    const newDoctor = new doctorModel(doctorData);
+    await newDoctor.save();
+
+    // Send welcome email
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -112,58 +113,23 @@ const addDoctor = async (req, res) => {
       },
     });
 
-    const newDoctor = new doctorModel(doctorData);
-    await newDoctor.save();
-
     await transporter.sendMail({
       to: email,
       subject: "Welcome to Upchaar - Doctor Portal",
-      html: `<!DOCTYPE html>
-  <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; background-color: #f9f9f9; }
-        .container { max-width: 600px; margin: 40px auto; background: #fff;
-                     border: 1px solid #ddd; border-radius: 8px; padding: 20px;
-                     box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h2 { color: #333; }
-        p { color: #555; line-height: 1.6; }
-        .credentials { background: #f1f1f1; padding: 12px; border-radius: 6px; margin: 15px 0; }
-        .footer { margin-top: 30px; font-size: 12px; color: #999; text-align: center; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
+      html: `
         <h2>Welcome, ${name}!</h2>
-        <p>We’re excited to have you join the Upchaar Doctor Portal.</p>
-        <p>Here are your login credentials:</p>
-        <div class="credentials">
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Password:</strong> ${password}</p>
-        </div>
-        <p>For security reasons, please reset your password after your first login.</p>
-        <p>You can now manage your profile, appointments, and subscriptions through the Upchaar Doctor Panel.</p>
-        <p>Regards,<br/>Upchaar Admin Team</p>
-        <div class="footer">
-          &copy; ${new Date().getFullYear()} Upchaar. All rights reserved.
-        </div>
-      </div>
-    </body>
-  </html>`,
+        <p>Your account has been created successfully.</p>
+        <p>Please reset your password after your first login for security.</p>
+      `,
     });
 
-    res
-      .status(201)
-      .json({ success: true, message: "Doctor added successfully" });
+    res.status(201).json({ success: true, message: "Doctor added successfully" });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      success: false,
-      message: "Error adding doctor",
-      message: error.message,
-    });
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error adding doctor", error: error.message });
   }
 };
+
 
 // API for admin login
 const loginAdmin = async (req, res) => {
