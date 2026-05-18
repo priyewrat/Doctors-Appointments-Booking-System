@@ -9,11 +9,10 @@ import SubscriptionSetting from "../models/subscriptionModel.js";
 import DoctorSubscription from "../models/subscriptionModel.js";
 import nodemailer from "nodemailer";
 
-// API for adding doctor
 const addDoctor = async (req, res) => {
   try {
 
-    // DEBUG LOGS
+    console.log("========== ADD DOCTOR API ==========");
     console.log("BODY =>", req.body);
     console.log("FILE =>", req.file);
 
@@ -41,7 +40,7 @@ const addDoctor = async (req, res) => {
       });
     }
 
-    // checking for all data to add doctor
+    // CHECK REQUIRED FIELDS
     if (
       !name ||
       !email ||
@@ -61,7 +60,9 @@ const addDoctor = async (req, res) => {
       });
     }
 
-    // validating email format
+    console.log("STEP 1 => Validation Passed");
+
+    // VALIDATE EMAIL
     if (!validator.isEmail(email)) {
       return res.status(400).json({
         success: false,
@@ -69,7 +70,7 @@ const addDoctor = async (req, res) => {
       });
     }
 
-    // validating strong password
+    // VALIDATE PASSWORD
     if (password.length < 8) {
       return res.status(400).json({
         success: false,
@@ -77,7 +78,9 @@ const addDoctor = async (req, res) => {
       });
     }
 
-    // Check if email already exists
+    console.log("STEP 2 => Email & Password Valid");
+
+    // CHECK EXISTING EMAIL
     const existingDoctor = await doctorModel.findOne({ email });
 
     if (existingDoctor) {
@@ -87,7 +90,7 @@ const addDoctor = async (req, res) => {
       });
     }
 
-    // Check if registration number already exists
+    // CHECK EXISTING REG NUMBER
     const existingReg = await doctorModel.findOne({ reg_number });
 
     if (existingReg) {
@@ -97,11 +100,20 @@ const addDoctor = async (req, res) => {
       });
     }
 
-    // hashing doctor password
+    console.log("STEP 3 => Duplicate Check Passed");
+
+    // HASH PASSWORD
     const salt = await bcrypt.genSalt(10);
+
+    console.log("STEP 4 => Salt Generated");
+
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // upload image to cloudinary
+    console.log("STEP 5 => Password Hashed");
+
+    // CLOUDINARY IMAGE UPLOAD
+    console.log("STEP 6 => Uploading Image To Cloudinary");
+
     const imageUpload = await cloudinary.uploader.upload(
       imageFile.path,
       {
@@ -109,20 +121,29 @@ const addDoctor = async (req, res) => {
       }
     );
 
+    console.log("STEP 7 => Image Uploaded");
+
     const imageUrl = imageUpload.secure_url;
 
-    // parse address safely
+    // PARSE ADDRESS
     let parsedAddress;
 
     try {
+
       parsedAddress = JSON.parse(address);
+
+      console.log("STEP 8 => Address Parsed");
+
     } catch (err) {
+
       return res.status(400).json({
         success: false,
         message: "Invalid address format",
       });
+
     }
 
+    // PREPARE DATA
     const doctorData = {
       name,
       email,
@@ -139,7 +160,20 @@ const addDoctor = async (req, res) => {
       date: Date.now(),
     };
 
-    // configure transporter
+    console.log("STEP 9 => Doctor Data Ready");
+
+    // SAVE DOCTOR
+    const newDoctor = new doctorModel(doctorData);
+
+    await newDoctor.save();
+
+    console.log("STEP 10 => Doctor Saved In DB");
+
+    // ==========================
+    // TEMPORARILY COMMENTED MAIL
+    // ==========================
+
+    /*
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -148,40 +182,21 @@ const addDoctor = async (req, res) => {
       },
     });
 
-    // save doctor
-    const newDoctor = new doctorModel(doctorData);
+    console.log("STEP 11 => Sending Email");
 
-    await newDoctor.save();
-
-    // send welcome email
     await transporter.sendMail({
       to: email,
       subject: "Welcome to Upchaar - Doctor Portal",
       html: `
-      <!DOCTYPE html>
-      <html>
-        <body style="font-family: Arial, sans-serif;">
-          <h2>Welcome, ${name}!</h2>
-
-          <p>We’re excited to have you join the Upchaar Doctor Portal.</p>
-
-          <p>Your login credentials:</p>
-
-          <div style="background:#f4f4f4;padding:10px;border-radius:5px;">
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Password:</strong> ${password}</p>
-          </div>
-
-          <p>Please reset your password after first login.</p>
-
-          <br />
-
-          <p>Regards,</p>
-          <p>Upchaar Admin Team</p>
-        </body>
-      </html>
+      <h2>Welcome, ${name}!</h2>
+      <p>Your account has been created successfully.</p>
+      <p>Email: ${email}</p>
+      <p>Password: ${password}</p>
       `,
     });
+
+    console.log("STEP 12 => Email Sent");
+    */
 
     return res.status(201).json({
       success: true,
@@ -190,7 +205,9 @@ const addDoctor = async (req, res) => {
 
   } catch (error) {
 
-    console.log("ADD DOCTOR ERROR =>", error);
+    console.log("========== ADD DOCTOR ERROR ==========");
+    console.log(error);
+    console.log("ERROR MESSAGE =>", error.message);
 
     return res.status(500).json({
       success: false,
