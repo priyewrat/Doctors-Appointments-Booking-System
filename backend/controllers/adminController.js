@@ -9,16 +9,25 @@ import SubscriptionSetting from "../models/subscriptionModel.js";
 import DoctorSubscription from "../models/subscriptionModel.js";
 import nodemailer from "nodemailer";
 
-
+// API for adding doctor
 const addDoctor = async (req, res) => {
   try {
     const {
-      name, email, password, speciality, degree,
-      experience, about, fees, city, address, reg_number
+      name,
+      email,
+      password,
+      speciality,
+      degree,
+      experience,
+      about,
+      fees,
+      city,
+      address,
+      reg_number,
     } = req.body;
     const imageFile = req.file;
 
-    // Validation checks with explicit reasons
+    // Field-by-field validation with explicit reasons
     if (!name) return res.status(400).json({ success: false, reason: "Name is missing" });
     if (!email) return res.status(400).json({ success: false, reason: "Email is missing" });
     if (!password) return res.status(400).json({ success: false, reason: "Password is missing" });
@@ -31,14 +40,17 @@ const addDoctor = async (req, res) => {
     if (!address) return res.status(400).json({ success: false, reason: "Address is missing" });
     if (!reg_number) return res.status(400).json({ success: false, reason: "Registration number is missing" });
 
+    // Email format
     if (!validator.isEmail(email)) {
       return res.status(400).json({ success: false, reason: "Invalid email format" });
     }
 
+    // Password strength
     if (password.length < 8) {
       return res.status(400).json({ success: false, reason: "Password must be at least 8 characters" });
     }
 
+    // Duplicate checks
     const existingDoctor = await doctorModel.findOne({ email });
     if (existingDoctor) {
       return res.status(400).json({ success: false, reason: "Email already exists" });
@@ -49,6 +61,7 @@ const addDoctor = async (req, res) => {
       return res.status(400).json({ success: false, reason: "Registration number already exists" });
     }
 
+    // Image check
     if (!imageFile) {
       return res.status(400).json({ success: false, reason: "Doctor image file is missing" });
     }
@@ -58,13 +71,24 @@ const addDoctor = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Upload image
-    const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
+    const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
+      resource_type: "image",
+    });
+    const imageUrl = imageUpload.secure_url;
+
+    // Address parsing safeguard
+    let parsedAddress;
+    try {
+      parsedAddress = typeof address === "string" ? JSON.parse(address) : address;
+    } catch (err) {
+      return res.status(400).json({ success: false, reason: "Invalid address format" });
+    }
 
     const doctorData = {
       name,
       email,
       password: hashedPassword,
-      image: imageUpload.secure_url,
+      image: imageUrl,
       speciality,
       degree,
       reg_number,
@@ -72,24 +96,39 @@ const addDoctor = async (req, res) => {
       about,
       city,
       fees,
-      address: typeof address === "string" ? JSON.parse(address) : address,
+      address: parsedAddress,
       date: Date.now(),
     };
 
+    // Email transporter
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
     const newDoctor = new doctorModel(doctorData);
     await newDoctor.save();
+
+    await transporter.sendMail({
+      to: email,
+      subject: "Welcome to Upchaar - Doctor Portal",
+      html: `<h2>Welcome, ${name}!</h2>
+             <p>Your account has been created. Please reset your password after first login.</p>`,
+    });
 
     res.status(201).json({ success: true, message: "Doctor added successfully" });
   } catch (error) {
     console.error("Error in addDoctor:", error);
     res.status(500).json({
       success: false,
-      reason: error.message,   // <-- exact reason
+      reason: error.message,   // exact runtime error
       stack: error.stack       // optional, for debugging
     });
   }
 };
-
 
 // API for admin login
 const loginAdmin = async (req, res) => {
