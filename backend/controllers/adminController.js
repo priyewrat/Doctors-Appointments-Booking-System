@@ -11,11 +11,7 @@ import nodemailer from "nodemailer";
 
 const addDoctor = async (req, res) => {
   try {
-
-    console.log("========== ADD DOCTOR API ==========");
-    console.log("BODY =>", req.body);
-    console.log("FILE =>", req.file);
-
+    
     const {
       name,
       email,
@@ -60,8 +56,6 @@ const addDoctor = async (req, res) => {
       });
     }
 
-    console.log("STEP 1 => Validation Passed");
-
     // VALIDATE EMAIL
     if (!validator.isEmail(email)) {
       return res.status(400).json({
@@ -77,8 +71,6 @@ const addDoctor = async (req, res) => {
         message: "Please enter a strong password",
       });
     }
-
-    console.log("STEP 2 => Email & Password Valid");
 
     // CHECK EXISTING EMAIL
     const existingDoctor = await doctorModel.findOne({ email });
@@ -100,28 +92,17 @@ const addDoctor = async (req, res) => {
       });
     }
 
-    console.log("STEP 3 => Duplicate Check Passed");
-
     // HASH PASSWORD
     const salt = await bcrypt.genSalt(10);
-
-    console.log("STEP 4 => Salt Generated");
-
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    console.log("STEP 5 => Password Hashed");
-
     // CLOUDINARY IMAGE UPLOAD
-    console.log("STEP 6 => Uploading Image To Cloudinary");
-
     const imageUpload = await cloudinary.uploader.upload(
       imageFile.path,
       {
         resource_type: "image",
       }
     );
-
-    console.log("STEP 7 => Image Uploaded");
 
     const imageUrl = imageUpload.secure_url;
 
@@ -131,8 +112,6 @@ const addDoctor = async (req, res) => {
     try {
 
       parsedAddress = JSON.parse(address);
-
-      console.log("STEP 8 => Address Parsed");
 
     } catch (err) {
 
@@ -160,20 +139,21 @@ const addDoctor = async (req, res) => {
       date: Date.now(),
     };
 
-    console.log("STEP 9 => Doctor Data Ready");
-
     // SAVE DOCTOR
     const newDoctor = new doctorModel(doctorData);
 
     await newDoctor.save();
 
-    console.log("STEP 10 => Doctor Saved In DB");
+    // SEND RESPONSE FIRST
+    res.status(201).json({
+      success: true,
+      message: "Doctor added successfully",
+    });
 
     // ==========================
-    // TEMPORARILY COMMENTED MAIL
+    // SEND EMAIL IN BACKGROUND
     // ==========================
 
-    /*
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -182,36 +162,46 @@ const addDoctor = async (req, res) => {
       },
     });
 
-    console.log("STEP 11 => Sending Email");
-
-    await transporter.sendMail({
+    transporter.sendMail({
       to: email,
       subject: "Welcome to Upchaar - Doctor Portal",
       html: `
-      <h2>Welcome, ${name}!</h2>
-      <p>Your account has been created successfully.</p>
-      <p>Email: ${email}</p>
-      <p>Password: ${password}</p>
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: Arial, sans-serif;">
+          <h2>Welcome, ${name}!</h2>
+
+          <p>Your doctor account has been created successfully.</p>
+
+          <div style="background:#f4f4f4;padding:12px;border-radius:6px;">
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Password:</strong> ${password}</p>
+          </div>
+
+          <p>Please reset your password after first login.</p>
+
+          <br />
+
+          <p>Regards,</p>
+          <p>Upchaar Team</p>
+        </body>
+      </html>
       `,
-    });
-
-    console.log("STEP 12 => Email Sent");
-    */
-
-    return res.status(201).json({
-      success: true,
-      message: "Doctor added successfully",
+    })
+    .then(() => {
+      console.log("Welcome email sent successfully");
+    })
+    .catch((error) => {
+      console.error("Email sending failed:", error.message);
     });
 
   } catch (error) {
 
-    console.log("========== ADD DOCTOR ERROR ==========");
-    console.log(error);
-    console.log("ERROR MESSAGE =>", error.message);
+    console.error("ADD DOCTOR ERROR:", error.message);
 
     return res.status(500).json({
       success: false,
-      error: error.message,
+      message: "Internal server error",
     });
   }
 };
