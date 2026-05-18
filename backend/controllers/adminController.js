@@ -12,6 +12,11 @@ import nodemailer from "nodemailer";
 // API for adding doctor
 const addDoctor = async (req, res) => {
   try {
+
+    // DEBUG LOGS
+    console.log("BODY =>", req.body);
+    console.log("FILE =>", req.file);
+
     const {
       name,
       email,
@@ -25,7 +30,16 @@ const addDoctor = async (req, res) => {
       address,
       reg_number,
     } = req.body;
+
     const imageFile = req.file;
+
+    // CHECK IMAGE
+    if (!imageFile) {
+      return res.status(400).json({
+        success: false,
+        message: "Image file is required",
+      });
+    }
 
     // checking for all data to add doctor
     if (
@@ -41,35 +55,41 @@ const addDoctor = async (req, res) => {
       !address ||
       !reg_number
     ) {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required" });
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
     }
 
     // validating email format
     if (!validator.isEmail(email)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Please enter a valid email" });
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email",
+      });
     }
 
     // validating strong password
     if (password.length < 8) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Password enter a strong password" });
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a strong password",
+      });
     }
 
     // Check if email already exists
     const existingDoctor = await doctorModel.findOne({ email });
+
     if (existingDoctor) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email already exists" });
+      return res.status(400).json({
+        success: false,
+        message: "Email already exists",
+      });
     }
 
     // Check if registration number already exists
     const existingReg = await doctorModel.findOne({ reg_number });
+
     if (existingReg) {
       return res.status(400).json({
         success: false,
@@ -77,15 +97,31 @@ const addDoctor = async (req, res) => {
       });
     }
 
-    // hashing doctor
+    // hashing doctor password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // upload image to cloudinary
-    const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
-      resource_type: "image",
-    });
+    const imageUpload = await cloudinary.uploader.upload(
+      imageFile.path,
+      {
+        resource_type: "image",
+      }
+    );
+
     const imageUrl = imageUpload.secure_url;
+
+    // parse address safely
+    let parsedAddress;
+
+    try {
+      parsedAddress = JSON.parse(address);
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid address format",
+      });
+    }
 
     const doctorData = {
       name,
@@ -99,7 +135,7 @@ const addDoctor = async (req, res) => {
       about,
       city,
       fees,
-      address: JSON.parse(address),
+      address: parsedAddress,
       date: Date.now(),
     };
 
@@ -112,55 +148,53 @@ const addDoctor = async (req, res) => {
       },
     });
 
+    // save doctor
     const newDoctor = new doctorModel(doctorData);
+
     await newDoctor.save();
 
+    // send welcome email
     await transporter.sendMail({
       to: email,
       subject: "Welcome to Upchaar - Doctor Portal",
-      html: `<!DOCTYPE html>
-  <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; background-color: #f9f9f9; }
-        .container { max-width: 600px; margin: 40px auto; background: #fff;
-                     border: 1px solid #ddd; border-radius: 8px; padding: 20px;
-                     box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h2 { color: #333; }
-        p { color: #555; line-height: 1.6; }
-        .credentials { background: #f1f1f1; padding: 12px; border-radius: 6px; margin: 15px 0; }
-        .footer { margin-top: 30px; font-size: 12px; color: #999; text-align: center; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <h2>Welcome, ${name}!</h2>
-        <p>We’re excited to have you join the Upchaar Doctor Portal.</p>
-        <p>Here are your login credentials:</p>
-        <div class="credentials">
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Password:</strong> ${password}</p>
-        </div>
-        <p>For security reasons, please reset your password after your first login.</p>
-        <p>You can now manage your profile, appointments, and subscriptions through the Upchaar Doctor Panel.</p>
-        <p>Regards,<br/>Upchaar Admin Team</p>
-        <div class="footer">
-          &copy; ${new Date().getFullYear()} Upchaar. All rights reserved.
-        </div>
-      </div>
-    </body>
-  </html>`,
+      html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: Arial, sans-serif;">
+          <h2>Welcome, ${name}!</h2>
+
+          <p>We’re excited to have you join the Upchaar Doctor Portal.</p>
+
+          <p>Your login credentials:</p>
+
+          <div style="background:#f4f4f4;padding:10px;border-radius:5px;">
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Password:</strong> ${password}</p>
+          </div>
+
+          <p>Please reset your password after first login.</p>
+
+          <br />
+
+          <p>Regards,</p>
+          <p>Upchaar Admin Team</p>
+        </body>
+      </html>
+      `,
     });
 
-    res
-      .status(201)
-      .json({ success: true, message: "Doctor added successfully" });
+    return res.status(201).json({
+      success: true,
+      message: "Doctor added successfully",
+    });
+
   } catch (error) {
-    console.log(error);
-    res.status(500).json({
+
+    console.log("ADD DOCTOR ERROR =>", error);
+
+    return res.status(500).json({
       success: false,
-      message: "Error adding doctor",
-      message: error.message,
+      error: error.message,
     });
   }
 };
