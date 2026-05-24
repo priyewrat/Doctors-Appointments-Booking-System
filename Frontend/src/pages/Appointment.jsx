@@ -6,6 +6,7 @@ import RelatedDoctors from "../components/RelatedDoctors";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 const Appointment = () => {
   const { docId } = useParams();
@@ -21,6 +22,9 @@ const Appointment = () => {
   const [slotIndex, setSlotIndex] = useState(0);
   const [slotTime, setSlotTime] = useState("");
   const [loadingSlots, setLoadingSlots] = useState(true);
+
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmData, setConfirmData] = useState(null);
 
   // Helper: convert 24h string to 12h AM/PM
   const to12Hour = (time24) => {
@@ -91,24 +95,48 @@ const Appointment = () => {
       return toast.warn("Please select a time slot");
     }
 
+    if (!docSlots[slotIndex] || docSlots[slotIndex].length === 0) {
+      return toast.warn("No slots available for the selected day");
+    }
+
     const date = docSlots[slotIndex][0].datetime;
     const slotDate = date.toLocaleDateString("en-CA"); // "YYYY-MM-DD"
-    const displayDate = date.toLocaleDateString("en-GB", { day: 'numeric', month: 'short', year: 'numeric' });
+    const displayDate = date.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
 
-    const isConfirmed = window.confirm(`Confirm appointment with Dr. ${docInfo.name} on ${displayDate} at ${to12Hour(slotTime)}?`);
+    setConfirmData({
+      docId,
+      slotDate,
+      slotTime,
+      displayDate,
+      docName: docInfo.name,
+    });
+    setShowConfirmModal(true);
+  };
 
-    if (!isConfirmed) return;
+  const handleConfirmBooking = async () => {
+    setShowConfirmModal(false);
+    if (!confirmData) return;
 
     try {
       const { data } = await axios.post(
         backendUrl + "/api/user/book-appointment",
-        { docId, slotDate, slotTime },
-        { headers: { token } },
+        {
+          docId: confirmData.docId,
+          slotDate: confirmData.slotDate,
+          slotTime: confirmData.slotTime,
+        },
+        { headers: { token } }
       );
 
       if (data.success) {
         toast.success(data.message);
         getDoctorsData();
+        setSlotTime("");
+        setConfirmData(null);
         navigate("/my-appointments");
       } else {
         toast.error(data.message);
@@ -132,54 +160,54 @@ const Appointment = () => {
     <div>
       {/* ----------- Doctor Details ---------- */}
       <div className="flex flex-col sm:flex-row gap-4">
-          <div>
-            <img
-              className="bg-primary w-full sm:max-w-72 rounded-lg"
-              src={docInfo.image}
-              alt=""
-            />
+        <div>
+          <img
+            className="bg-primary w-full sm:max-w-72 rounded-lg"
+            src={docInfo.image}
+            alt=""
+          />
+        </div>
+
+        <div className="flex-1 border border-gray-400 rounded-lg p-8 py-7 bg-white mx-2 sm:mx-0 mt-[-80px] sm:mt-0">
+          <p className="flex items-center gap-2 text-2xl font-medium text-gray-900">
+            {docInfo.name}
+            <img className="w-5" src={assets.verified_icon} alt="" />
+          </p>
+          <div className="flex items-center gap-2 text-sm mt-1 text-gray-600">
+            <p>
+              {docInfo.degree} - {docInfo.speciality}
+            </p>
+            <button className="py-0.5 px-2 border text-xs rounded-full">
+              {docInfo.experience}
+            </button>
           </div>
 
-          <div className="flex-1 border border-gray-400 rounded-lg p-8 py-7 bg-white mx-2 sm:mx-0 mt-[-80px] sm:mt-0">
-            <p className="flex items-center gap-2 text-2xl font-medium text-gray-900">
-              {docInfo.name}
-              <img className="w-5" src={assets.verified_icon} alt="" />
+          <div>
+            <p className="flex items-center gap-1 text-sm font-medium text-gray-900 mt-3">
+              About <img src={assets.info_icon} alt="" />
             </p>
-            <div className="flex items-center gap-2 text-sm mt-1 text-gray-600">
-              <p>
-                {docInfo.degree} - {docInfo.speciality}
-              </p>
-              <button className="py-0.5 px-2 border text-xs rounded-full">
-                {docInfo.experience}
-              </button>
-            </div>
-
-            <div>
-              <p className="flex items-center gap-1 text-sm font-medium text-gray-900 mt-3">
-                About <img src={assets.info_icon} alt="" />
-              </p>
-              <p className="text-sm text-gray-500 max-w-[700px] mt-1">
-                {docInfo.about}
-              </p>
-            </div>
-            <p className="text-gray-500 font-medium mt-4">
-              Appointment fee:{" "}
-              <span className="text-gray-600">
-                {currencySymbol}
-                {docInfo.fees}
-              </span>
+            <p className="text-sm text-gray-500 max-w-[700px] mt-1">
+              {docInfo.about}
             </p>
-            <div className="mt-4">
-              <p className="flex items-center gap-1 text-sm font-medium text-gray-900">
-                Address
-                <img className="w-5" src={assets.location_icon} alt="" />
-              </p>
-              <p className="text-sm text-gray-500 max-w-[700px] mt-1">
-                {docInfo.address?.line1}, {docInfo.address?.line2}
-              </p>
-            </div>
+          </div>
+          <p className="text-gray-500 font-medium mt-4">
+            Appointment fee:{" "}
+            <span className="text-gray-600">
+              {currencySymbol}
+              {docInfo.fees}
+            </span>
+          </p>
+          <div className="mt-4">
+            <p className="flex items-center gap-1 text-sm font-medium text-gray-900">
+              Address
+              <img className="w-5" src={assets.location_icon} alt="" />
+            </p>
+            <p className="text-sm text-gray-500 max-w-[700px] mt-1">
+              {docInfo.address?.line1}, {docInfo.address?.line2}
+            </p>
           </div>
         </div>
+      </div>
 
         {/* ----------- Booking Slots ---------- */}
         <div className="sm:ml-72 sm:pl-4 mt-4 font-medium text-gray-700">
@@ -248,6 +276,16 @@ const Appointment = () => {
         </div>
 
         <RelatedDoctors docId={docId} speciality={docInfo.speciality} />
+
+        <ConfirmationModal
+          isOpen={showConfirmModal}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={handleConfirmBooking}
+          title="Confirm Appointment"
+          message={`Confirm appointment with Dr. ${confirmData?.docName} on ${
+            confirmData?.displayDate
+          } at ${to12Hour(confirmData?.slotTime)}?`}
+        />
       </div>
     ) : (
       <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 mt-10">

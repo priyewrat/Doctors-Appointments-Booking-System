@@ -3,6 +3,7 @@ import { AppContext } from '../context/AppContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const MyAppointments = () => {
   const { backendUrl, token, getDoctorsData } = useContext(AppContext);
@@ -13,6 +14,8 @@ const MyAppointments = () => {
   const navigate = useNavigate();
 
   const [processingId, setProcessingId] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelId, setCancelId] = useState(null);
 
 
   // Format ISO date string (YYYY-MM-DD) to "DD Mon YYYY"
@@ -48,14 +51,19 @@ const MyAppointments = () => {
   };
 
   const cancelAppointment = async (appointmentId) => {
-    const isConfirmed = window.confirm("Are you sure you want to cancel this appointment?");
-    if (!isConfirmed) return;
+    setCancelId(appointmentId);
+    setShowCancelModal(true);
+  };
+
+  const handleConfirmCancel = async () => {
+    setShowCancelModal(false);
+    if (!cancelId) return;
 
     try {
-      setProcessingId(appointmentId);
+      setProcessingId(cancelId);
       const { data } = await axios.post(
         backendUrl + '/api/user/cancel-appointment',
-        { appointmentId },
+        { appointmentId: cancelId },
         { headers: { token } }
       );
       if (data.success) {
@@ -70,6 +78,7 @@ const MyAppointments = () => {
     } finally {
       // Always reset, success or error
       setProcessingId(null);
+      setCancelId(null);
     }
   };
 
@@ -206,6 +215,14 @@ const MyAppointments = () => {
           </div>
         )}
       </div>
+
+      <ConfirmationModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleConfirmCancel}
+        title="Cancel Appointment"
+        message="Are you sure you want to cancel this appointment? This action cannot be undone."
+      />
     </div>
   );
 };
