@@ -285,6 +285,7 @@ const Appointment = () => {
           message={`Confirm appointment with Dr. ${confirmData?.docName} on ${
             confirmData?.displayDate
           } at ${to12Hour(confirmData?.slotTime)}?`}
+          variant="primary"
         />
       </div>
     ) : (

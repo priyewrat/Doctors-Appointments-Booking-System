@@ -222,6 +222,7 @@ const MyAppointments = () => {
         onConfirm={handleConfirmCancel}
         title="Cancel Appointment"
         message="Are you sure you want to cancel this appointment? This action cannot be undone."
+        variant="danger"
       />
     </div>
   );
