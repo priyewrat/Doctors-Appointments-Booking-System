@@ -98,51 +98,67 @@ const Doctors = () => {
         </div>
 
         {/* Doctors Grid */}
-        <div className="w-full grid grid-cols-auto gap-4 gap-y-6">
-          {filterDoc.map((item, index) => (
-            <div
-              onClick={() =>
-                item.available && navigate(`/appointment/${item._id}`)
-              }
-              className={`border border-blue-200 rounded-xl overflow-hidden transition-all duration-500 ${
-                item.available
-                  ? "cursor-pointer hover:translate-y-[-10px]"
-                  : "opacity-50 cursor-not-allowed"
-              }`}
-              key={index}
-            >
-              <img className="bg-blue-50" src={item.image} alt={item.name} />
-              <div className="p-4">
-                <div className="flex items-center gap-2 text-sm text-center">
-                  {item.available ? (
-                    <>
-                      <p className="w-2 h-2 bg-green-500 rounded-full"></p>
-                      <p className="text-green-500">Available</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="w-2 h-2 bg-red-500 rounded-full"></p>
-                      <p className="text-red-500">Unavailable</p>
-                    </>
-                  )}
+        <div className="w-full">
+          {filterDoc.length > 0 ? (
+            <div className="grid grid-cols-auto gap-4 gap-y-6">
+              {filterDoc.map((item, index) => (
+                <div
+                  onClick={() =>
+                    item.available && navigate(`/appointment/${item._id}`)
+                  }
+                  className={`border border-blue-200 rounded-xl overflow-hidden transition-all duration-500 ${
+                    item.available
+                      ? "cursor-pointer hover:translate-y-[-10px]"
+                      : "opacity-50 cursor-not-allowed"
+                  }`}
+                  key={index}
+                >
+                  <img className="bg-blue-50" src={item.image} alt={item.name} />
+                  <div className="p-4">
+                    <div className="flex items-center gap-2 text-sm text-center">
+                      {item.available ? (
+                        <>
+                          <p className="w-2 h-2 bg-green-500 rounded-full"></p>
+                          <p className="text-green-500">Available</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="w-2 h-2 bg-red-500 rounded-full"></p>
+                          <p className="text-red-500">Unavailable</p>
+                        </>
+                      )}
+                    </div>
+                    <div className="text-start">
+                      <p className="text-gray-900 text-lg font-medium">
+                        {item.name}
+                      </p>
+                      <p className="text-gray-600 text-sm">{item.speciality}</p>
+                      <p className="flex justify-start items-center gap-1 text-gray-500 text-sm pt-1">
+                        <img
+                          className="w-4 h-4"
+                          src={assets.pinlocation_icon}
+                          alt="location"
+                        />
+                        <span>{item.city}</span>
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-start">
-                  <p className="text-gray-900 text-lg font-medium">
-                    {item.name}
-                  </p>
-                  <p className="text-gray-600 text-sm">{item.speciality}</p>
-                  <p className="flex justify-start items-center gap-1 text-gray-500 text-sm pt-1">
-                    <img
-                      className="w-4 h-4"
-                      src={assets.pinlocation_icon}
-                      alt="location"
-                    />
-                    <span>{item.city}</span>
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+              <img className="w-20 opacity-30 mb-4" src={assets.logo} alt="No doctors" />
+              <p className="text-gray-500 text-lg font-medium">No doctors found</p>
+              <p className="text-gray-400 text-sm mt-1">Try adjusting your filters or search term</p>
+              <button 
+                onClick={() => {setSearchTerm(""); navigate('/doctors')}}
+                className="mt-6 text-primary hover:underline font-medium"
+              >
+                Clear all filters
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
