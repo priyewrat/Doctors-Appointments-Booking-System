@@ -48,6 +48,9 @@ const MyAppointments = () => {
   };
 
   const cancelAppointment = async (appointmentId) => {
+    const isConfirmed = window.confirm("Are you sure you want to cancel this appointment?");
+    if (!isConfirmed) return;
+
     try {
       setProcessingId(appointmentId);
       const { data } = await axios.post(

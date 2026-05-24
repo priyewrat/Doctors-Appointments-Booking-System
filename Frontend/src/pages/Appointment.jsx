@@ -87,10 +87,19 @@ const Appointment = () => {
       return navigate("/login", { state: { from: location } });
     }
 
-    try {
-      const date = docSlots[slotIndex][0].datetime;
-      const slotDate = date.toLocaleDateString("en-CA");  // "YYYY-MM-DD"
+    if (!slotTime) {
+      return toast.warn("Please select a time slot");
+    }
 
+    const date = docSlots[slotIndex][0].datetime;
+    const slotDate = date.toLocaleDateString("en-CA"); // "YYYY-MM-DD"
+    const displayDate = date.toLocaleDateString("en-GB", { day: 'numeric', month: 'short', year: 'numeric' });
+
+    const isConfirmed = window.confirm(`Confirm appointment with Dr. ${docInfo.name} on ${displayDate} at ${to12Hour(slotTime)}?`);
+
+    if (!isConfirmed) return;
+
+    try {
       const { data } = await axios.post(
         backendUrl + "/api/user/book-appointment",
         { docId, slotDate, slotTime },
