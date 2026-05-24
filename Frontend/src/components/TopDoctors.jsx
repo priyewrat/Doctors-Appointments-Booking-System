@@ -17,45 +17,56 @@ const TopDoctors = () => {
         Simply browse through our extensive list of trusted doctors.
       </p>
 
-      <div className="w-full grid grid-cols-auto gap-4 pt-5 gap-y-6 px-3 sm:px-0">
-        {availableDoctors.slice(0, 10).map((item, index) => (
-          <div
-            onClick={() => navigate(`/appointment/${item._id}`)}
-            className="border border-blue-200 rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500"
-            key={index}
-          >
-            <img className="bg-blue-50" src={item.image} alt={item.name} />
-            <div className="p-4">
-              <div className="flex items-center gap-2 text-sm text-center text-green-500">
-                <p className="w-2 h-2 bg-green-500 rounded-full"></p>
-                <p>Available</p>
+      <div className="w-full">
+        {availableDoctors.length > 0 ? (
+          <div className="grid grid-cols-auto gap-4 pt-5 gap-y-6 px-3 sm:px-0">
+            {availableDoctors.slice(0, 10).map((item, index) => (
+              <div
+                onClick={() => navigate(`/appointment/${item._id}`)}
+                className="border border-blue-200 rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500"
+                key={index}
+              >
+                <img className="bg-blue-50" src={item.image} alt={item.name} />
+                <div className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-center text-green-500">
+                    <p className="w-2 h-2 bg-green-500 rounded-full"></p>
+                    <p>Available</p>
+                  </div>
+                  <div className="text-start">
+                    <p className="text-gray-900 text-lg font-medium">{item.name}</p>
+                    <p className="text-gray-600 text-sm">{item.speciality}</p>
+                    <p className="flex justify-start items-center gap-1 text-gray-500 text-sm pt-1">
+                      <img
+                        className="w-4 h-4"
+                        src={assets.pinlocation_icon}
+                        alt="location"
+                      />
+                      <span>{item.city}</span>
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="text-start">
-                <p className="text-gray-900 text-lg font-medium">{item.name}</p>
-                <p className="text-gray-600 text-sm">{item.speciality}</p>
-                <p className="flex justify-start items-center gap-1 text-gray-500 text-sm pt-1">
-                  <img
-                    className="w-4 h-4"
-                    src={assets.pinlocation_icon}
-                    alt="location"
-                  />
-                  <span>{item.city}</span>
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
+        ) : (
+          <div className="flex flex-col items-center justify-center py-10 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 mt-5 mx-3 sm:mx-0">
+             <p className="text-gray-500 font-medium">No available doctors found at the moment.</p>
+             <p className="text-gray-400 text-sm mt-1 text-center px-4">Please check back later or browse all specialities.</p>
+          </div>
+        )}
       </div>
 
-      <button
-        onClick={() => {
-          navigate("/doctors");
-          scrollTo(0, 0);
-        }}
-        className="bg-blue-50 text-gray-600 px-12 py-3 rounded-full mt-10"
-      >
-        more
-      </button>
+      {availableDoctors.length > 0 && (
+        <button
+          onClick={() => {
+            navigate("/doctors");
+            scrollTo(0, 0);
+          }}
+          className="bg-blue-50 text-gray-600 px-12 py-3 rounded-full mt-10"
+        >
+          more
+        </button>
+      )}
     </div>
   );
 };
