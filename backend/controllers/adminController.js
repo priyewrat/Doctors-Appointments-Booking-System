@@ -1,5 +1,5 @@
 import validator from "validator";
-import bycrypt from "bcrypt";
+import bcrypt from "bcrypt";
 import { v2 as cloudinary } from "cloudinary";
 import doctorModel from "../models/doctorModel.js";
 import jwt from "jsonwebtoken";
@@ -9,9 +9,9 @@ import SubscriptionSetting from "../models/subscriptionModel.js";
 import DoctorSubscription from "../models/subscriptionModel.js";
 import nodemailer from "nodemailer";
 
-// API for adding doctor
 const addDoctor = async (req, res) => {
   try {
+    
     const {
       name,
       email,
@@ -25,9 +25,18 @@ const addDoctor = async (req, res) => {
       address,
       reg_number,
     } = req.body;
+
     const imageFile = req.file;
 
-    // checking for all data to add doctor
+    // CHECK IMAGE
+    if (!imageFile) {
+      return res.status(400).json({
+        success: false,
+        message: "Image file is required",
+      });
+    }
+
+    // CHECK REQUIRED FIELDS
     if (
       !name ||
       !email ||
@@ -41,35 +50,41 @@ const addDoctor = async (req, res) => {
       !address ||
       !reg_number
     ) {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required" });
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
     }
 
-    // validating email format
+    // VALIDATE EMAIL
     if (!validator.isEmail(email)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Please enter a valid email" });
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email",
+      });
     }
 
-    // validating strong password
+    // VALIDATE PASSWORD
     if (password.length < 8) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Password enter a strong password" });
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a strong password",
+      });
     }
 
-    // Check if email already exists
+    // CHECK EXISTING EMAIL
     const existingDoctor = await doctorModel.findOne({ email });
+
     if (existingDoctor) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email already exists" });
+      return res.status(400).json({
+        success: false,
+        message: "Email already exists",
+      });
     }
 
-    // Check if registration number already exists
+    // CHECK EXISTING REG NUMBER
     const existingReg = await doctorModel.findOne({ reg_number });
+
     if (existingReg) {
       return res.status(400).json({
         success: false,
@@ -77,16 +92,37 @@ const addDoctor = async (req, res) => {
       });
     }
 
-    // hashing doctor
-    const salt = await bycrypt.genSalt(10);
-    const hashedPassword = await bycrypt.hash(password, salt);
+    // HASH PASSWORD
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    // upload image to cloudinary
-    const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
-      resource_type: "image",
-    });
+    // CLOUDINARY IMAGE UPLOAD
+    const imageUpload = await cloudinary.uploader.upload(
+      imageFile.path,
+      {
+        resource_type: "image",
+      }
+    );
+
     const imageUrl = imageUpload.secure_url;
 
+    // PARSE ADDRESS
+    let parsedAddress;
+
+    try {
+
+      parsedAddress = JSON.parse(address);
+
+    } catch (err) {
+
+      return res.status(400).json({
+        success: false,
+        message: "Invalid address format",
+      });
+
+    }
+
+    // PREPARE DATA
     const doctorData = {
       name,
       email,
@@ -99,11 +135,25 @@ const addDoctor = async (req, res) => {
       about,
       city,
       fees,
-      address: JSON.parse(address),
+      address: parsedAddress,
       date: Date.now(),
     };
 
-    // configure transporter
+    // SAVE DOCTOR
+    const newDoctor = new doctorModel(doctorData);
+
+    await newDoctor.save();
+
+    // SEND RESPONSE FIRST
+    res.status(201).json({
+      success: true,
+      message: "Doctor added successfully",
+    });
+
+    // ==========================
+    // SEND EMAIL IN BACKGROUND
+    // ==========================
+
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -112,55 +162,46 @@ const addDoctor = async (req, res) => {
       },
     });
 
-    const newDoctor = new doctorModel(doctorData);
-    await newDoctor.save();
-
-    await transporter.sendMail({
+    transporter.sendMail({
       to: email,
       subject: "Welcome to Upchaar - Doctor Portal",
-      html: `<!DOCTYPE html>
-  <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; background-color: #f9f9f9; }
-        .container { max-width: 600px; margin: 40px auto; background: #fff;
-                     border: 1px solid #ddd; border-radius: 8px; padding: 20px;
-                     box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h2 { color: #333; }
-        p { color: #555; line-height: 1.6; }
-        .credentials { background: #f1f1f1; padding: 12px; border-radius: 6px; margin: 15px 0; }
-        .footer { margin-top: 30px; font-size: 12px; color: #999; text-align: center; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <h2>Welcome, ${name}!</h2>
-        <p>We’re excited to have you join the Upchaar Doctor Portal.</p>
-        <p>Here are your login credentials:</p>
-        <div class="credentials">
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Password:</strong> ${password}</p>
-        </div>
-        <p>For security reasons, please reset your password after your first login.</p>
-        <p>You can now manage your profile, appointments, and subscriptions through the Upchaar Doctor Panel.</p>
-        <p>Regards,<br/>Upchaar Admin Team</p>
-        <div class="footer">
-          &copy; ${new Date().getFullYear()} Upchaar. All rights reserved.
-        </div>
-      </div>
-    </body>
-  </html>`,
+      html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: Arial, sans-serif;">
+          <h2>Welcome, ${name}!</h2>
+
+          <p>Your doctor account has been created successfully.</p>
+
+          <div style="background:#f4f4f4;padding:12px;border-radius:6px;">
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Password:</strong> ${password}</p>
+          </div>
+
+          <p>Please reset your password after first login.</p>
+
+          <br />
+
+          <p>Regards,</p>
+          <p>Upchaar Team</p>
+        </body>
+      </html>
+      `,
+    })
+    .then(() => {
+      console.log("Welcome email sent successfully");
+    })
+    .catch((error) => {
+      console.error("Email sending failed:", error.message);
     });
 
-    res
-      .status(201)
-      .json({ success: true, message: "Doctor added successfully" });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({
+
+    console.error("ADD DOCTOR ERROR:", error.message);
+
+    return res.status(500).json({
       success: false,
-      message: "Error adding doctor",
-      message: error.message,
+      message: "Internal server error",
     });
   }
 };
