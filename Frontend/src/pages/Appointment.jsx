@@ -119,11 +119,10 @@ const Appointment = () => {
     if (docInfo) getAvailableSlots();
   }, [docInfo]);
 
-  return (
-    docInfo && (
-      <div>
-        {/* ----------- Doctor Details ---------- */}
-        <div className="flex flex-col sm:flex-row gap-4">
+  return docInfo ? (
+    <div>
+      {/* ----------- Doctor Details ---------- */}
+      <div className="flex flex-col sm:flex-row gap-4">
           <div>
             <img
               className="bg-primary w-full sm:max-w-72 rounded-lg"
@@ -241,8 +240,19 @@ const Appointment = () => {
 
         <RelatedDoctors docId={docId} speciality={docInfo.speciality} />
       </div>
-    )
-  );
+    ) : (
+      <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 mt-10">
+        <img className="w-20 opacity-30 mb-4" src={assets.logo} alt="Not found" />
+        <p className="text-gray-500 text-lg font-medium">Doctor details not found</p>
+        <p className="text-gray-400 text-sm mt-1 text-center px-4">The doctor you are looking for might have been removed or the link is invalid.</p>
+        <button 
+          onClick={() => navigate('/doctors')}
+          className="mt-6 bg-primary text-white px-8 py-2 rounded-full hover:bg-opacity-90 transition-all"
+        >
+          View All Doctors
+        </button>
+      </div>
+    );
 };
 
 export default Appointment;
