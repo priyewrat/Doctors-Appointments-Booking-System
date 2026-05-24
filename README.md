@@ -49,6 +49,7 @@ npm -v
   - Option B: Local MongoDB server
 
 Optional (only if you use these features):
+
 - **Cloudinary account** (doctor images / profile images)
 - **Razorpay account** (online payments)
 - **Gmail account + App Password** (welcome email + password reset emails)
@@ -150,6 +151,7 @@ VITE_RAZORPAY_KEY_ID=
 ```
 
 Notes:
+
 - `VITE_ADMIN_URL` is used by the patient app “Doctor Login” button.
 - `VITE_RAZORPAY_KEY_ID` is required only if you want the “Pay Online” flow to work.
 
@@ -185,6 +187,7 @@ The backend connects to the `upchaar` database automatically.
 ### 2) Cloudinary (for image uploads)
 
 From Cloudinary dashboard, copy:
+
 - `CLOUDINARY_NAME`
 - `CLOUDINARY_API_KEY`
 - `CLOUDINARY_SECRET_KEY`
@@ -204,6 +207,7 @@ This backend uses Nodemailer with `service: "gmail"`.
 ### 4) Razorpay (optional)
 
 If you want online payment:
+
 - Put Razorpay keys in `backend/.env`:
   - `RAZORPAY_KEY_ID`
   - `RAZORPAY_KEY_SECRET`
@@ -231,10 +235,12 @@ If you want online payment:
 ### CORS / Network Error in frontend/admin
 
 Backend CORS only allows:
+
 - `FRONTEND_URL`
 - `ADMIN_DASHBOARD_URL`
 
 Make sure these are set correctly in `backend/.env` and match exactly:
+
 - `http://localhost:5173`
 - `http://localhost:5174`
 
