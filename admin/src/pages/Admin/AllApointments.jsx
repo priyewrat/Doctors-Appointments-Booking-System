@@ -39,77 +39,91 @@ const AllAppointments = () => {
         </div>
 
         {/* Table Rows */}
-        {appointments
-          .slice()
-          .reverse()
-          .map((item, index) => (
-            <div
-              className="flex flex-wrap justify-between max-sm:gap-2 sm:grid sm:grid-cols-[0.5fr_3fr_1fr_3fr_3fr_1fr_1fr_1fr] items-center text-gray-500 py-3 px-6 border-b border-gray-300 hover:bg-gray-50"
-              key={index}
-            >
-              {/* Index */}
-              <p className="max-sm:hidden">{index + 1}</p>
-
-              {/* Patient */}
-              <div className="flex items-center gap-2">
-                <img
-                  className="w-8 h-8 rounded-full object-cover"
-                  src={item.userData.image}
-                  alt=""
-                />
-                <p>{item.userData.name}</p>
-              </div>
-
-              {/* Age */}
-              <p className="max-sm:hidden pr-2">
-                {calculateAge(item.userData.dob)
-                  ? calculateAge(item.userData.dob)
-                  : item.userData.dob}
-              </p>
-
-              {/* Date & Time */}
-              <p>{formatOrderDate(`${item.slotDate}T${item.slotTime}`)}</p>
-
-              {/* Doctor */}
-              <div className="flex items-center gap-2">
-                <img
-                  className="w-8 h-8 rounded-full bg-gray-200 object-cover"
-                  src={item.docData.image}
-                  alt=""
-                />
-                <p>{item.docData.name}</p>
-              </div>
-
-              {/* Fees */}
-              <p>
-                {currency}
-                {item.amount}
-              </p>
-
-              {/* Payment Status */}
-              <p
-                className={
-                  item.payment ? "text-green-500 font-medium" : "text-zinc-500"
-                }
+        {appointments.length > 0 ? (
+          appointments
+            .slice()
+            .reverse()
+            .map((item, index) => (
+              <div
+                className="flex flex-wrap justify-between max-sm:gap-2 sm:grid sm:grid-cols-[0.5fr_3fr_1fr_3fr_3fr_1fr_1fr_1fr] items-center text-gray-500 py-3 px-6 border-b border-gray-300 hover:bg-gray-50"
+                key={index}
               >
-                {item.payment ? "Paid" : "Not Paid"}
-              </p>
+                {/* Index */}
+                <p className="max-sm:hidden">{index + 1}</p>
 
-              {/* Actions */}
-              {item.cancelled ? (
-                <p className="text-red-400 text-xs font-medium">Cancelled</p>
-              ) : item.isCompleted ? (
-                <p className="text-green-500 text-xs font-medium">Completed</p>
-              ) : (
-                <img
-                  onClick={() => cancelAppointment(item._id)}
-                  className="w-9 h-9 cursor-pointer"
-                  src={assets.cancel_icon}
-                  alt="Cancel"
-                />
-              )}
-            </div>
-          ))}
+                {/* Patient */}
+                <div className="flex items-center gap-2">
+                  <img
+                    className="w-8 h-8 rounded-full object-cover"
+                    src={item.userData.image}
+                    alt=""
+                  />
+                  <p>{item.userData.name}</p>
+                </div>
+
+                {/* Age */}
+                <p className="max-sm:hidden pr-2">
+                  {calculateAge(item.userData.dob)
+                    ? calculateAge(item.userData.dob)
+                    : item.userData.dob}
+                </p>
+
+                {/* Date & Time */}
+                <p>{formatOrderDate(`${item.slotDate}T${item.slotTime}`)}</p>
+
+                {/* Doctor */}
+                <div className="flex items-center gap-2">
+                  <img
+                    className="w-8 h-8 rounded-full bg-gray-200 object-cover"
+                    src={item.docData.image}
+                    alt=""
+                  />
+                  <p>{item.docData.name}</p>
+                </div>
+
+                {/* Fees */}
+                <p>
+                  {currency}
+                  {item.amount}
+                </p>
+
+                {/* Payment Status */}
+                <p
+                  className={
+                    item.payment ? "text-green-500 font-medium" : "text-zinc-500"
+                  }
+                >
+                  {item.payment ? "Paid" : "Not Paid"}
+                </p>
+
+                {/* Actions */}
+                {item.cancelled ? (
+                  <p className="text-red-400 text-xs font-medium">Cancelled</p>
+                ) : item.isCompleted ? (
+                  <p className="text-green-500 text-xs font-medium">Completed</p>
+                ) : (
+                  <img
+                    onClick={() => cancelAppointment(item._id)}
+                    className="w-9 h-9 cursor-pointer"
+                    src={assets.cancel_icon}
+                    alt="Cancel"
+                  />
+                )}
+              </div>
+            ))
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 bg-gray-50/30">
+            <img
+              className="w-20 opacity-20 mb-4"
+              src={assets.appointment_icon}
+              alt=""
+            />
+            <p className="text-gray-400 font-medium">No appointments found</p>
+            <p className="text-gray-400 text-xs">
+              When patients book appointments, they will appear here.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
