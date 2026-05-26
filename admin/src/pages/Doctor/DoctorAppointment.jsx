@@ -40,61 +40,69 @@ const DoctorAppointment = () => {
           <p>Action</p>
         </div>
 
-        {appointments.reverse().map((item, index) => (
-          <div
-            className="flex flex-wrap justify-between max-sm:gap-5 max-sm:text-base sm:grid grid-cols-[0.5fr_2fr_1fr_1fr_3fr_1fr_1fr] gap-1 items-center text-gray-500 py-3 px-6 border-b border-zinc-200 hover:bg-gray-50"
-            key={index}
-          >
-            <p className="max-sm:hidden">{index + 1}</p>
-            <div className="flex items-center gap-2">
-              <img
-                className="w-8 rounded-full"
-                src={item.userData.image}
-                alt=""
-              />{" "}
-              <p>{item.userData.name}</p>
-            </div>
-            <div>
-              <p
-                className={`text-xs inline border border-primary px-2 rounded-full ${
-                  item.payment ? "text-green-600" : "text-black"
-                }`}
-              >
-                {item.payment ? "Paid" : "CASH"}
-              </p>
-            </div>
-            <p className="max-sm:hidden">
-              {calculateAge(item.userData.dob)
-                ? calculateAge(item.userData.dob)
-                : "N/A"}
-            </p>
-            <p>{formatOrderDate(`${item.slotDate}T${item.slotTime}`)}</p>
-            <p>
-              {currency}
-              {item.amount}
-            </p>
-            {item.cancelled ? (
-              <p className="text-red-400 text-xs font-medium">Cancelled</p>
-            ) : item.isCompleted ? (
-              <p className="text-green-500 text-xs font-medium">Completed</p>
-            ) : (
-              <div className="flex">
+        {appointments.length > 0 ? (
+          appointments.reverse().map((item, index) => (
+            <div
+              className="flex flex-wrap justify-between max-sm:gap-5 max-sm:text-base sm:grid grid-cols-[0.5fr_2fr_1fr_1fr_3fr_1fr_1fr] gap-1 items-center text-gray-500 py-3 px-6 border-b border-zinc-200 hover:bg-gray-50"
+              key={index}
+            >
+              <p className="max-sm:hidden">{index + 1}</p>
+              <div className="flex items-center gap-2">
                 <img
-                  onClick={() => cancelAppointment(item._id)}
-                  className="w-10 cursor-pointer"
-                  src={assets.cancel_icon}
+                  className="w-8 rounded-full"
+                  src={item.userData.image}
                   alt=""
-                />
-                <img
-                  onClick={() => completeAppointment(item._id)}
-                  className="w-10 cursor-pointer"
-                  src={assets.tick_icon}
-                  alt=""
-                />
+                />{" "}
+                <p>{item.userData.name}</p>
               </div>
-            )}
+              <div>
+                <p
+                  className={`text-xs inline border border-primary px-2 rounded-full ${
+                    item.payment ? "text-green-600" : "text-black"
+                  }`}
+                >
+                  {item.payment ? "Paid" : "CASH"}
+                </p>
+              </div>
+              <p className="max-sm:hidden">
+                {calculateAge(item.userData.dob)
+                  ? calculateAge(item.userData.dob)
+                  : "N/A"}
+              </p>
+              <p>{formatOrderDate(`${item.slotDate}T${item.slotTime}`)}</p>
+              <p>
+                {currency}
+                {item.amount}
+              </p>
+              {item.cancelled ? (
+                <p className="text-red-400 text-xs font-medium">Cancelled</p>
+              ) : item.isCompleted ? (
+                <p className="text-green-500 text-xs font-medium">Completed</p>
+              ) : (
+                <div className="flex">
+                  <img
+                    onClick={() => cancelAppointment(item._id)}
+                    className="w-10 cursor-pointer"
+                    src={assets.cancel_icon}
+                    alt=""
+                  />
+                  <img
+                    onClick={() => completeAppointment(item._id)}
+                    className="w-10 cursor-pointer"
+                    src={assets.tick_icon}
+                    alt=""
+                  />
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 bg-gray-50/30">
+            <img className="w-20 opacity-20 mb-4" src={assets.appointment_icon} alt="" />
+            <p className="text-gray-400 font-medium">No appointments found</p>
+            <p className="text-gray-400 text-xs">When patients book appointments, they will appear here.</p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
