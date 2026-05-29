@@ -239,7 +239,7 @@ const DoctorProfile = () => {
 
           <div className="p-6">
             {/* Add new availability form */}
-            <div className="bg-blue-50/50 p-6 rounded-lg border border-blue-100 mb-8">
+            <div className="bg-blue-50/50 p-6 rounded-lg border border-blue-100 mb-6">
               <p className="text-sm font-medium text-blue-800 mb-4 flex items-center gap-2">
                 <FiPlus /> Add New Time Slot
               </p>
@@ -345,11 +345,11 @@ const DoctorProfile = () => {
             </div>
 
             {/* List existing availabilities grouped by day */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               <h4 className="text-sm font-semibold text-gray-700 border-b border-zinc-100 pb-2 uppercase tracking-wider">Weekly Schedule</h4>
               
               {availabilities.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-2">
                   {[
                     "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
                   ].map((day) => {
@@ -357,15 +357,15 @@ const DoctorProfile = () => {
                     if (daySlots.length === 0) return null;
 
                     return (
-                      <div key={day} className="flex flex-col md:flex-row gap-6 p-5 rounded-xl border border-zinc-100 hover:border-primary/20 hover:bg-blue-50/10 transition-all group">
-                        <div className="md:w-32 flex items-center">
-                          <span className="px-4 py-1 bg-zinc-100 text-zinc-600 rounded-full text-xs font-bold tracking-wider group-hover:bg-primary group-hover:text-white transition-colors">
+                      <div key={day} className="flex flex-col md:flex-row gap-4 p-3 rounded-xl border border-zinc-100 hover:border-primary/20 hover:bg-blue-50/10 transition-all group">
+                        <div className="md:w-28 flex items-center">
+                          <span className="px-3 py-1 bg-zinc-100 text-zinc-600 rounded-full text-xs font-bold tracking-wider group-hover:bg-primary group-hover:text-white transition-colors">
                             {day}
                           </span>
                         </div>
-                        <div className="flex-1 flex flex-wrap gap-4">
+                        <div className="flex-1 flex flex-wrap gap-3">
                           {daySlots.map((avail) => (
-                            <div key={avail._id} className="flex items-center gap-4 bg-white border border-zinc-200 px-4 py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all">
+                            <div key={avail._id} className="flex items-center gap-3 bg-white border border-zinc-200 px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all">
                               <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
                                 <FiClock className="text-primary/60" />
                                 <span>{to12Hour(avail.startTime)}</span>
