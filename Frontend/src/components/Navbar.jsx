@@ -203,15 +203,6 @@ const Navbar = () => {
                 >
                   Login / Create Account
                 </button>
-                <button
-                  onClick={() => {
-                    window.location.href = import.meta.env.VITE_ADMIN_URL + "/";
-                    setShowMenu(false);
-                  }}
-                  className="bg-zinc-500 text-white px-8 py-3 rounded-full font-light hover:bg-zinc-600 transition-all duration-200 w-full max-w-[250px]"
-                >
-                  Doctor Login
-                </button>
               </div>
             )}
           </ul>
