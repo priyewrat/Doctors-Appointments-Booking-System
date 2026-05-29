@@ -120,6 +120,11 @@ const MyAppointments = () => {
   useEffect(() => {
     if (token) {
       getUserAppointments();
+      // Poll every 5 seconds to match the Doctor's view logic
+      const interval = setInterval(() => {
+        getUserAppointments();
+      }, 5000);
+      return () => clearInterval(interval);
     }
     window.scrollTo({ top: 0, behavior: "smooth" })
   }, [token]);
