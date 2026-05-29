@@ -226,28 +226,28 @@ const DoctorProfile = () => {
         </div>
 
         {/* ----- Availability Management Section ----- */}
-        <div className="mt-4 border border-zinc-200 rounded-xl overflow-hidden bg-white shadow-sm">
+        <div className="mt-4 border border-zinc-200 rounded-xl overflow-hidden bg-white shadow-sm max-w-5xl">
           <div className="bg-zinc-50 px-6 py-4 border-b border-zinc-200 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FiCalendar className="text-primary text-lg" />
-              <h3 className="font-semibold text-gray-800">Manage Working Hours</h3>
+              <h3 className="font-semibold text-gray-800 text-sm md:text-base">Manage Working Hours</h3>
             </div>
-            <p className="text-xs text-gray-500 flex items-center gap-1">
+            <p className="hidden sm:flex text-[10px] md:text-xs text-gray-500 items-center gap-1">
               <FiInfo /> Add multiple slots per day for split shifts
             </p>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 md:p-6">
             {/* Add new availability form */}
-            <div className="bg-blue-50/50 p-5 rounded-lg border border-blue-100 mb-8">
-              <p className="text-sm font-medium text-blue-800 mb-4 flex items-center gap-2">
+            <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100 mb-6">
+              <p className="text-xs font-medium text-blue-800 mb-3 flex items-center gap-2">
                 <FiPlus /> Add New Time Slot
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-gray-500 font-medium ml-1">Working Day</label>
+                  <label className="text-[10px] text-gray-500 font-medium ml-1">Working Day</label>
                   <select
-                    className="border border-zinc-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    className="border border-zinc-300 rounded-lg px-2 py-1.5 text-xs bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                     value={newAvailability.dayOfWeek}
                     onChange={(e) =>
                       setNewAvailability({
@@ -274,12 +274,12 @@ const DoctorProfile = () => {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-gray-500 font-medium ml-1">Start Time</label>
+                  <label className="text-[10px] text-gray-500 font-medium ml-1">Start Time</label>
                   <div className="relative">
-                    <FiClock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <FiClock className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 size-3" />
                     <input
                       type="time"
-                      className="w-full border border-zinc-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                      className="w-full border border-zinc-300 rounded-lg pl-8 pr-2 py-1.5 text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                       value={newAvailability.startTime}
                       onChange={(e) =>
                         setNewAvailability({
@@ -292,12 +292,12 @@ const DoctorProfile = () => {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-gray-500 font-medium ml-1">End Time</label>
+                  <label className="text-[10px] text-gray-500 font-medium ml-1">End Time</label>
                   <div className="relative">
-                    <FiClock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <FiClock className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 size-3" />
                     <input
                       type="time"
-                      className="w-full border border-zinc-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                      className="w-full border border-zinc-300 rounded-lg pl-8 pr-2 py-1.5 text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                       value={newAvailability.endTime}
                       onChange={(e) =>
                         setNewAvailability({
@@ -310,13 +310,13 @@ const DoctorProfile = () => {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-gray-500 font-medium ml-1">Slot Duration (Min)</label>
+                  <label className="text-[10px] text-gray-500 font-medium ml-1">Duration (Min)</label>
                   <div className="flex gap-2">
                     <input
                       type="number"
                       min="5"
                       step="5"
-                      className="flex-1 border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                      className="w-20 border border-zinc-300 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                       value={newAvailability.slotDuration}
                       onChange={(e) =>
                         setNewAvailability({
@@ -327,7 +327,7 @@ const DoctorProfile = () => {
                     />
                     <button
                       onClick={() => handleAddAvailability()}
-                      className="px-6 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-opacity-90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
+                      className="flex-1 px-4 py-1.5 bg-primary text-white rounded-lg text-xs font-medium hover:bg-opacity-90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
                       disabled={
                         !newAvailability.dayOfWeek ||
                         !newAvailability.startTime ||
@@ -344,11 +344,11 @@ const DoctorProfile = () => {
             </div>
 
             {/* List existing availabilities grouped by day */}
-            <div className="space-y-6">
-              <h4 className="text-sm font-semibold text-gray-700 border-b border-zinc-100 pb-2">Your Weekly Schedule</h4>
+            <div className="space-y-4">
+              <h4 className="text-xs font-semibold text-gray-700 border-b border-zinc-100 pb-2 uppercase tracking-wider">Weekly Schedule</h4>
               
               {availabilities.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-3">
                   {[
                     "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
                   ].map((day) => {
@@ -356,28 +356,28 @@ const DoctorProfile = () => {
                     if (daySlots.length === 0) return null;
 
                     return (
-                      <div key={day} className="flex flex-col md:flex-row gap-4 p-4 rounded-xl border border-zinc-100 hover:border-primary/20 hover:bg-blue-50/10 transition-all group">
-                        <div className="md:w-32 flex items-center">
-                          <span className="px-3 py-1 bg-zinc-100 text-zinc-600 rounded-full text-xs font-bold tracking-wider group-hover:bg-primary group-hover:text-white transition-colors">
+                      <div key={day} className="flex flex-col sm:flex-row gap-3 p-3 rounded-lg border border-zinc-100 hover:border-primary/20 hover:bg-blue-50/10 transition-all group">
+                        <div className="sm:w-24 flex items-center">
+                          <span className="px-2 py-0.5 bg-zinc-100 text-zinc-600 rounded-full text-[10px] font-bold tracking-wider group-hover:bg-primary group-hover:text-white transition-colors">
                             {day}
                           </span>
                         </div>
-                        <div className="flex-1 flex flex-wrap gap-3">
+                        <div className="flex-1 flex flex-wrap gap-2">
                           {daySlots.map((avail) => (
-                            <div key={avail._id} className="flex items-center gap-3 bg-white border border-zinc-200 px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all">
-                              <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
-                                <FiClock className="text-primary/60" />
+                            <div key={avail._id} className="flex items-center gap-2 bg-white border border-zinc-200 px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md transition-all">
+                              <div className="flex items-center gap-1.5 text-xs text-gray-600 font-medium">
+                                <FiClock className="text-primary/60 size-3" />
                                 <span>{to12Hour(avail.startTime)}</span>
                                 <span className="text-gray-300">—</span>
                                 <span>{to12Hour(avail.endTime)}</span>
                               </div>
-                              <div className="h-4 w-[1px] bg-zinc-200 mx-1"></div>
-                              <div className="flex items-center gap-2">
+                              <div className="h-3 w-[1px] bg-zinc-200 mx-0.5"></div>
+                              <div className="flex items-center gap-1">
                                 <input
                                   type="number"
                                   min="5"
                                   step="5"
-                                  className="w-12 text-center text-xs border-none bg-zinc-50 rounded py-1 focus:ring-1 focus:ring-primary/30 outline-none"
+                                  className="w-10 text-center text-[10px] border-none bg-zinc-50 rounded py-0.5 focus:ring-1 focus:ring-primary/30 outline-none"
                                   value={avail.slotDuration}
                                   onChange={(e) =>
                                     updateAvailability(profileData._id, avail._id, {
@@ -386,14 +386,14 @@ const DoctorProfile = () => {
                                     })
                                   }
                                 />
-                                <span className="text-[10px] text-gray-400 font-medium uppercase tracking-tighter">Min</span>
+                                <span className="text-[9px] text-gray-400 font-medium uppercase tracking-tighter">Min</span>
                               </div>
                               <button
                                 onClick={() => deleteAvailability(profileData._id, avail._id)}
-                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
+                                className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
                                 title="Delete Slot"
                               >
-                                <FiTrash2 size={14} />
+                                <FiTrash2 size={12} />
                               </button>
                             </div>
                           ))}
