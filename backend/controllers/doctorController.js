@@ -6,8 +6,8 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import doctorAvailabilityModel from "../models/doctorAvailabilityModel.js";
 import bookingModel from "../models/bookingModel.js";
-import DoctorSubscription from "../models/subscriptionModel.js"; // DoctorSubscription schema
-import SubscriptionSetting from "../models/subscriptionModel.js"; // global fee settings (admin panel)
+import DoctorSubscription from "../models/subscriptionModel.js";
+import SubscriptionSetting from "../models/subscriptionModel.js";
 import Razorpay from "razorpay";
 
 const razorpayInstance = new Razorpay({
@@ -167,6 +167,9 @@ const doctorDashboard = async (req, res) => {
     const subscription = await DoctorSubscription.findOne({
       doctorId: docId,
     }).sort({ createdAt: -1 });
+
+    const subscriptionSetting = await SubscriptionSetting.findOne({});
+
     const dashData = {
       doctorId: docId,
       earnings,
@@ -175,6 +178,7 @@ const doctorDashboard = async (req, res) => {
       latestAppointments: appointments.reverse().slice(0, 5),
       subscriptionActive: subscription?.subscriptionActive || false,
       expiryDate: subscription?.expiryDate || null,
+      subscriptionAmount: subscriptionSetting?.amount || 399,
     };
 
     res.json({ success: true, dashData });

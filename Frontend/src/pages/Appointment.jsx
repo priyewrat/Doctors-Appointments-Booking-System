@@ -282,7 +282,7 @@ const Appointment = () => {
           onClose={() => setShowConfirmModal(false)}
           onConfirm={handleConfirmBooking}
           title="Confirm Appointment"
-          message={`Confirm appointment with Dr. ${confirmData?.docName} on ${
+          message={`Confirm appointment with ${confirmData?.docName} on ${
             confirmData?.displayDate
           } at ${to12Hour(confirmData?.slotTime)}?`}
           variant="primary"

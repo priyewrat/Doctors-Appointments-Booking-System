@@ -1,9 +1,10 @@
-import React, { use, useContext, useEffect } from "react";
+import React, { use, useContext, useEffect, useState } from "react";
 import { DoctorContext } from "../../context/DoctorContext";
 import { assets } from "../../assets/assets";
 import { AppContext } from "../../context/AppContext";
 import { toast } from "react-toastify";
 import axios from "axios";
+import ConfirmationModal from "../../components/ConfirmationModal";
 
 const DoctorDashboard = () => {
   const {
@@ -17,6 +18,8 @@ const DoctorDashboard = () => {
   } = useContext(DoctorContext);
 
   const { currency, slotDateFormat, formatOrderDate } = useContext(AppContext);
+
+  const [showSubModal, setShowSubModal] = useState(false);
 
   useEffect(() => {
     if (dToken) {
@@ -120,7 +123,7 @@ const DoctorDashboard = () => {
               </button>
             ) : (
               <button
-                onClick={() => subscribeDoctor(dashData.doctorId)}
+                onClick={() => setShowSubModal(true)}
                 className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-2 rounded-lg 
                  shadow-md hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 
                  transform hover:scale-105"
@@ -136,6 +139,19 @@ const DoctorDashboard = () => {
             )}
           </div>
         </div>
+
+        {/* Subscription Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showSubModal}
+          onClose={() => setShowSubModal(false)}
+          onConfirm={() => {
+            setShowSubModal(false);
+            subscribeDoctor(dashData.doctorId);
+          }}
+          title="Confirm Subscription"
+          message={`Package: Doctor Monthly Plan\nAmount: ${currency}${dashData.subscriptionAmount}\n\nBenefits:\n• Unlock patient bookings\n• Priority listing in search\n• Profile visibility`}
+        />
+
         <div className="bg-white">
           <div className="flex items-center gap-2.5 px-4 py-4 mt-10 rounded-t border border-zinc-200">
             <img src={assets.list_icon} alt="" />
