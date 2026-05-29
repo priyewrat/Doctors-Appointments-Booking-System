@@ -14,6 +14,16 @@
   font-family: outfit;
 }
 
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"]:disabled {
+  cursor: not-allowed;
+}
+
 .add-btn:disabled {
   background-color: #ccc;   /* grey background */
   cursor: not-allowed;      /* show blocked cursor */

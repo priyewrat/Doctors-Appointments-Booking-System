@@ -5,6 +5,22 @@
   font-family: 'Outfit', sans-serif;
 }
 
+button, 
+a,
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"]:disabled {
+  cursor: not-allowed;
+}
+
+button, 
+[role="button"] {
+  cursor: pointer;
+}
+
 @theme {
   --color-primary: #5f6FFF;
   --color-secondary: #314158;
