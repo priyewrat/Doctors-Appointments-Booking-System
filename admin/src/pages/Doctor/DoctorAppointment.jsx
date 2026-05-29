@@ -1,7 +1,8 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { DoctorContext } from "../../context/DoctorContext";
 import { AppContext } from "../../context/AppContext";
 import { assets } from "../../assets/assets";
+import ConfirmationModal from "../../components/ConfirmationModal";
 
 const DoctorAppointment = () => {
   const {
@@ -14,6 +15,10 @@ const DoctorAppointment = () => {
 
   const { calculateAge, slotDateFormat, currency, formatOrderDate } =
     useContext(AppContext);
+
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
 
   useEffect(() => {
     getAppointments();
@@ -28,6 +33,31 @@ const DoctorAppointment = () => {
   return (
     <div className="w-full max-w-6xl m-5">
       <p className="mb-3 text-lg font-medium">All Appointments</p>
+
+      {/* Cancel Appointment Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={() => {
+          cancelAppointment(selectedAppointmentId);
+          setShowCancelModal(false);
+        }}
+        title="Cancel Appointment"
+        message="Are you sure you want to cancel this appointment? This action cannot be undone."
+        variant="danger"
+      />
+
+      {/* Complete Appointment Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showCompleteModal}
+        onClose={() => setShowCompleteModal(false)}
+        onConfirm={() => {
+          completeAppointment(selectedAppointmentId);
+          setShowCompleteModal(false);
+        }}
+        title="Complete Appointment"
+        message="Are you sure you want to mark this appointment as completed?"
+      />
 
       <div className="bg-white border rounded text-sm max-h-[80vh] overflow-y-scroll border-zinc-200">
         <div className="max-sm:hidden grid grid-cols-[0.5fr_2fr_1fr_1fr_3fr_1fr_1fr] gap-1 py-3 px-6 border-b border-zinc-200">
@@ -81,13 +111,19 @@ const DoctorAppointment = () => {
               ) : (
                 <div className="flex">
                   <img
-                    onClick={() => cancelAppointment(item._id)}
+                    onClick={() => {
+                      setSelectedAppointmentId(item._id);
+                      setShowCancelModal(true);
+                    }}
                     className="w-10 cursor-pointer"
                     src={assets.cancel_icon}
                     alt=""
                   />
                   <img
-                    onClick={() => completeAppointment(item._id)}
+                    onClick={() => {
+                      setSelectedAppointmentId(item._id);
+                      setShowCompleteModal(true);
+                    }}
                     className="w-10 cursor-pointer"
                     src={assets.tick_icon}
                     alt=""

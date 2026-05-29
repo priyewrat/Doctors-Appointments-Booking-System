@@ -20,6 +20,9 @@ const DoctorDashboard = () => {
   const { currency, slotDateFormat, formatOrderDate } = useContext(AppContext);
 
   const [showSubModal, setShowSubModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
 
   useEffect(() => {
     if (dToken) {
@@ -152,6 +155,31 @@ const DoctorDashboard = () => {
           message={`Package: Doctor Monthly Plan\nAmount: ${currency}${dashData.subscriptionAmount}\n\nBenefits:\n• Unlock patient bookings\n• Priority listing in search\n• Profile visibility`}
         />
 
+        {/* Cancel Appointment Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showCancelModal}
+          onClose={() => setShowCancelModal(false)}
+          onConfirm={() => {
+            cancelAppointment(selectedAppointmentId);
+            setShowCancelModal(false);
+          }}
+          title="Cancel Appointment"
+          message="Are you sure you want to cancel this appointment? This action cannot be undone."
+          variant="danger"
+        />
+
+        {/* Complete Appointment Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showCompleteModal}
+          onClose={() => setShowCompleteModal(false)}
+          onConfirm={() => {
+            completeAppointment(selectedAppointmentId);
+            setShowCompleteModal(false);
+          }}
+          title="Complete Appointment"
+          message="Are you sure you want to mark this appointment as completed?"
+        />
+
         <div className="bg-white">
           <div className="flex items-center gap-2.5 px-4 py-4 mt-10 rounded-t border border-zinc-200">
             <img src={assets.list_icon} alt="" />
@@ -186,13 +214,19 @@ const DoctorDashboard = () => {
                   ) : (
                     <div className="flex">
                       <img
-                        onClick={() => cancelAppointment(item._id)}
+                        onClick={() => {
+                          setSelectedAppointmentId(item._id);
+                          setShowCancelModal(true);
+                        }}
                         className="w-10 cursor-pointer"
                         src={assets.cancel_icon}
                         alt=""
                       />
                       <img
-                        onClick={() => completeAppointment(item._id)}
+                        onClick={() => {
+                          setSelectedAppointmentId(item._id);
+                          setShowCompleteModal(true);
+                        }}
                         className="w-10 cursor-pointer"
                         src={assets.tick_icon}
                         alt=""
