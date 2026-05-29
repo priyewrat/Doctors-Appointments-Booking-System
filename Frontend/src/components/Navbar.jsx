@@ -165,6 +165,55 @@ const Navbar = () => {
             <NavLink onClick={() => setShowMenu(false)} to="/contact">
               <p className="px-4 py-2 rounded inline-block">CONTACT</p>
             </NavLink>
+
+            {token && userData ? (
+              <>
+                <NavLink
+                  onClick={() => setShowMenu(false)}
+                  to="/my-profile"
+                  className="w-full text-center"
+                >
+                  <p className="px-4 py-2 rounded inline-block">MY PROFILE</p>
+                </NavLink>
+                <NavLink
+                  onClick={() => setShowMenu(false)}
+                  to="/my-appointments"
+                  className="w-full text-center"
+                >
+                  <p className="px-4 py-2 rounded inline-block">MY APPOINTMENTS</p>
+                </NavLink>
+                <button
+                  onClick={() => {
+                    logout();
+                    setShowMenu(false);
+                  }}
+                  className="bg-red-500 text-white px-8 py-2 rounded-full font-light mt-4 w-full max-w-[250px]"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <div className="flex flex-col gap-4 w-full mt-4 items-center">
+                <button
+                  onClick={() => {
+                    navigate("/login");
+                    setShowMenu(false);
+                  }}
+                  className="bg-primary text-white px-8 py-3 rounded-full font-light hover:bg-blue-600 transition-all duration-200 w-full max-w-[250px]"
+                >
+                  Login / Create Account
+                </button>
+                <button
+                  onClick={() => {
+                    window.location.href = import.meta.env.VITE_ADMIN_URL + "/";
+                    setShowMenu(false);
+                  }}
+                  className="bg-zinc-500 text-white px-8 py-3 rounded-full font-light hover:bg-zinc-600 transition-all duration-200 w-full max-w-[250px]"
+                >
+                  Doctor Login
+                </button>
+              </div>
+            )}
           </ul>
         </div>
       </div>
