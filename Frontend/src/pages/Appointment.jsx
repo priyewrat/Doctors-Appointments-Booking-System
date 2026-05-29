@@ -10,7 +10,7 @@ import ConfirmationModal from "../components/ConfirmationModal";
 
 const Appointment = () => {
   const { docId } = useParams();
-  const { doctors, currencySymbol, backendUrl, token, getDoctorsData } =
+  const { doctors, currencySymbol, backendUrl, token, getDoctorsData, getUserAppointments } =
     useContext(AppContext);
   const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
@@ -135,6 +135,7 @@ const Appointment = () => {
       if (data.success) {
         toast.success(data.message);
         getDoctorsData();
+        getUserAppointments();
         setSlotTime("");
         setConfirmData(null);
         navigate("/my-appointments");

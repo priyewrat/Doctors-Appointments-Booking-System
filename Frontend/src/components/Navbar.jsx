@@ -5,7 +5,7 @@ import { AppContext } from "../context/AppContext";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { token, setToken, userData } = useContext(AppContext);
+  const { token, setToken, userData, getUserAppointments } = useContext(AppContext);
 
   const [showMenu, setShowMenu] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -88,6 +88,7 @@ const Navbar = () => {
                   <p
                     onClick={() => {
                       navigate("/my-appointments");
+                      getUserAppointments();
                       setShowDropdown(false);
                     }}
                     className="hover:text-black cursor-pointer"
@@ -176,7 +177,10 @@ const Navbar = () => {
                   <p className="px-4 py-2 rounded inline-block">MY PROFILE</p>
                 </NavLink>
                 <NavLink
-                  onClick={() => setShowMenu(false)}
+                  onClick={() => {
+                    setShowMenu(false);
+                    getUserAppointments();
+                  }}
                   to="/my-appointments"
                   className="w-full text-center"
                 >

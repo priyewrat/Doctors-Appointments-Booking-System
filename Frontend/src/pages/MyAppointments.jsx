@@ -6,9 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import ConfirmationModal from '../components/ConfirmationModal';
 
 const MyAppointments = () => {
-  const { backendUrl, token, getDoctorsData } = useContext(AppContext);
+  const { backendUrl, token, getDoctorsData, appointments, getUserAppointments } = useContext(AppContext);
 
-  const [appointments, setAppointments] = useState([]);
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   const navigate = useNavigate();
@@ -16,7 +15,6 @@ const MyAppointments = () => {
   const [processingId, setProcessingId] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelId, setCancelId] = useState(null);
-
 
   // Format ISO date string (YYYY-MM-DD) to "DD Mon YYYY"
   const slotDateFormat = (slotDate) => {
@@ -37,17 +35,6 @@ const MyAppointments = () => {
     const suffix = h >= 12 ? "PM" : "AM";
     const hours = ((h + 11) % 12) + 1;
     return `${hours}:${m.toString().padStart(2, "0")} ${suffix}`;
-  };
-
-  const getUserAppointments = async () => {
-    try {
-      const { data } = await axios.get(backendUrl + '/api/user/appointments', { headers: { token } });
-      if (data.success) {
-        setAppointments(data.appointments.reverse());
-      }
-    } catch (error) {
-      toast.error(error.message);
-    }
   };
 
   const cancelAppointment = async (appointmentId) => {
