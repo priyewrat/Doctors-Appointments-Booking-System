@@ -11,4 +11,10 @@ const doctorSubscriptionSchema = new mongoose.Schema({
   orderDate: { type: Date, default: null }
 });
 
+const subscriptionSettingSchema = new mongoose.Schema({
+  amount: { type: Number, required: true, default: 399 },
+  currency: { type: String, default: "INR" }
+}, { timestamps: true });
+
+export const SubscriptionSetting = mongoose.model("SubscriptionSetting", subscriptionSettingSchema);
 export default mongoose.model("DoctorSubscription", doctorSubscriptionSchema);

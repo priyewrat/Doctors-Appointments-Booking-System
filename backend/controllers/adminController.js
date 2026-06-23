@@ -5,8 +5,7 @@ import doctorModel from "../models/doctorModel.js";
 import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
 import userModel from "../models/userModel.js";
-import SubscriptionSetting from "../models/subscriptionModel.js";
-import DoctorSubscription from "../models/subscriptionModel.js";
+import DoctorSubscription, { SubscriptionSetting } from "../models/subscriptionModel.js";
 import nodemailer from "nodemailer";
 
 const addDoctor = async (req, res) => {

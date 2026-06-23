@@ -6,8 +6,7 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import doctorAvailabilityModel from "../models/doctorAvailabilityModel.js";
 import bookingModel from "../models/bookingModel.js";
-import DoctorSubscription from "../models/subscriptionModel.js";
-import SubscriptionSetting from "../models/subscriptionModel.js";
+import DoctorSubscription, { SubscriptionSetting } from "../models/subscriptionModel.js";
 import Razorpay from "razorpay";
 
 const razorpayInstance = new Razorpay({
