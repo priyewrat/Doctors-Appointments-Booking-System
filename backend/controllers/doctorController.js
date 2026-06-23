@@ -187,7 +187,7 @@ const doctorDashboard = async (req, res) => {
       latestAppointments: appointments.reverse().slice(0, 5),
       subscriptionActive: subscription?.subscriptionActive || false,
       expiryDate: subscription?.expiryDate || null,
-      subscriptionAmount: subscriptionSetting?.amount || 399,
+      subscriptionAmount: subscriptionSetting ? subscriptionSetting.amount : "Not configured by admin",
     };
 
     res.json({ success: true, dashData });

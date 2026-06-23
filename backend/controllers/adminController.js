@@ -364,7 +364,7 @@ const adminDashboard = async (req, res) => {
       patients: users.length,
       latestAppointments: appointments.reverse().slice(0, 5),
       doctorSummary, // <-- array with doctor name, patients, earnings, email, reg_number
-      subscriptionAmount: subscriptionSetting?.amount || 399, // <-- added here
+      subscriptionAmount: subscriptionSetting ? subscriptionSetting.amount : "Not configured by admin", // <-- added here
       subscriptionRecords,
     };
     res.json({ success: true, dashData });
@@ -434,7 +434,10 @@ const updateSubscriptionAmount = async (req, res) => {
 const getSubscriptionAmount = async (req, res) => {
   try {
     const setting = await SubscriptionSetting.findOne({});
-    res.json({ success: true, amount: setting?.amount || 399 });
+    if (!setting) {
+      return res.status(404).json({ success: false, message: "Subscription fee not set by admin" });
+    }
+    res.json({ success: true, amount: setting.amount });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
